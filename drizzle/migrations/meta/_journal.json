@@ -8,6 +8,13 @@
       "when": 1766607363815,
       "tag": "0000_sticky_amphibian",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766706378322,
+      "tag": "0001_shiny_amazoness",
+      "breakpoints": true
     }
   ]
 }

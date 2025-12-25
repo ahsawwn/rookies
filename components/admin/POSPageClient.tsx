@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AdminCard } from "./Card";
 import { AdminButton } from "./Button";
-import { FiX, FiMinus, FiPlus, FiPercent } from "react-icons/fi";
+import { FiX, FiMinus, FiPlus, FiPercent, FiSearch } from "react-icons/fi";
 import Image from "next/image";
 
 interface CartItem {
@@ -19,6 +19,50 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [discount, setDiscount] = useState(0);
     const [paymentMethod, setPaymentMethod] = useState("cash");
+    const [selectedCategory, setSelectedCategory] = useState<string>("all");
+    const [searchQuery, setSearchQuery] = useState("");
+
+    // Group products by category
+    const productsByCategory = useMemo(() => {
+        const grouped: Record<string, any[]> = {};
+        initialProducts.forEach((product) => {
+            const category = product.category || "uncategorized";
+            if (!grouped[category]) {
+                grouped[category] = [];
+            }
+            grouped[category].push(product);
+        });
+        return grouped;
+    }, [initialProducts]);
+
+    const categories = useMemo(() => {
+        return Object.keys(productsByCategory).sort();
+    }, [productsByCategory]);
+
+    // Filter products based on category and search
+    const filteredProducts = useMemo(() => {
+        let products = initialProducts;
+        
+        if (selectedCategory !== "all") {
+            products = products.filter((p) => (p.category || "uncategorized") === selectedCategory);
+        }
+        
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            products = products.filter(
+                (p) =>
+                    p.name.toLowerCase().includes(query) ||
+                    (p.category || "").toLowerCase().includes(query) ||
+                    (p.description || "").toLowerCase().includes(query)
+            );
+        }
+        
+        return products;
+    }, [initialProducts, selectedCategory, searchQuery]);
+
+    const formatCurrency = (amount: string | number) => {
+        return `Rs. ${parseFloat(amount.toString()).toFixed(2)}`;
+    };
 
     const subtotal = cart.reduce((sum, item) => sum + parseFloat(item.product.price) * item.quantity, 0);
     const discountAmount = (subtotal * discount) / 100;
@@ -71,34 +115,76 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Products Grid */}
-                <div className="lg:col-span-2">
-                    <AdminCard header={<h2 className="text-lg font-semibold">Products</h2>}>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto">
-                            {initialProducts.length > 0 ? (
-                                initialProducts.map((product) => (
+                <div className="lg:col-span-2 space-y-4">
+                    {/* Search and Category Filter */}
+                    <AdminCard>
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="flex-1 relative">
+                                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search products..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                />
+                            </div>
+                            <div className="flex gap-2 overflow-x-auto pb-2">
+                                <button
+                                    onClick={() => setSelectedCategory("all")}
+                                    className={`px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all ${
+                                        selectedCategory === "all"
+                                            ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg"
+                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    }`}
+                                >
+                                    All
+                                </button>
+                                {categories.map((category) => (
+                                    <button
+                                        key={category}
+                                        onClick={() => setSelectedCategory(category)}
+                                        className={`px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all ${
+                                            selectedCategory === category
+                                                ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg"
+                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                        }`}
+                                    >
+                                        {category.charAt(0).toUpperCase() + category.slice(1)} ({productsByCategory[category]?.length || 0})
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </AdminCard>
+
+                    {/* Products Grid */}
+                    <AdminCard header={<h2 className="text-lg font-semibold">Products ({filteredProducts.length})</h2>}>
+                        <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 max-h-[600px] overflow-y-auto">
+                            {filteredProducts.length > 0 ? (
+                                filteredProducts.map((product) => (
                                     <div
                                         key={product.id}
                                         onClick={() => addToCart(product)}
-                                        className="p-4 border border-gray-200 rounded-lg hover:border-pink-500 hover:shadow-md cursor-pointer transition-all"
+                                        className="p-2 border border-gray-200 rounded-lg hover:border-pink-500 hover:shadow-md cursor-pointer transition-all bg-white group"
                                     >
-                                        <div className="relative aspect-square bg-gray-100 rounded-lg mb-2 overflow-hidden">
+                                        <div className="relative aspect-square bg-gray-100 rounded-md mb-2 overflow-hidden">
                                             <Image
                                                 src={product.image}
                                                 alt={product.name}
                                                 fill
-                                                className="object-cover"
+                                                className="object-cover group-hover:scale-105 transition-transform"
                                             />
                                         </div>
-                                        <p className="font-medium text-sm line-clamp-1">{product.name}</p>
-                                        <p className="text-pink-600 font-bold">${parseFloat(product.price).toFixed(2)}</p>
-                                        {product.stock < 10 && (
-                                            <p className="text-xs text-amber-600">Low stock: {product.stock}</p>
+                                        <p className="font-medium text-xs line-clamp-2 mb-1 text-gray-900">{product.name}</p>
+                                        <p className="text-pink-600 font-bold text-sm">{formatCurrency(product.price)}</p>
+                                        {product.stock !== undefined && product.stock < 10 && (
+                                            <p className="text-xs text-amber-600 mt-0.5">Stock: {product.stock}</p>
                                         )}
                                     </div>
                                 ))
                             ) : (
                                 <p className="col-span-full text-center text-gray-500 py-12">
-                                    No products available
+                                    No products found
                                 </p>
                             )}
                         </div>
@@ -122,7 +208,7 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                                         <div className="flex-1">
                                             <p className="font-medium text-sm">{item.product.name}</p>
                                             <p className="text-xs text-gray-600">
-                                                ${parseFloat(item.product.price).toFixed(2)} each
+                                                {formatCurrency(item.product.price)} each
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -142,7 +228,7 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                                         </div>
                                         <div className="text-right">
                                             <p className="font-semibold">
-                                                ${(parseFloat(item.product.price) * item.quantity).toFixed(2)}
+                                                {formatCurrency(parseFloat(item.product.price) * item.quantity)}
                                             </p>
                                             <button
                                                 onClick={() => removeFromCart(item.product.id)}
@@ -162,7 +248,7 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                             <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
                                 <div className="flex items-center justify-between text-sm">
                                     <span>Subtotal</span>
-                                    <span>${subtotal.toFixed(2)}</span>
+                                    <span>{formatCurrency(subtotal)}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <FiPercent className="w-4 h-4 text-gray-400" />
@@ -170,7 +256,7 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                                         type="number"
                                         value={discount}
                                         onChange={(e) => setDiscount(Number(e.target.value))}
-                                        className="flex-1 px-3 py-1 border border-gray-300 rounded text-sm"
+                                        className="flex-1 px-3 py-1 border border-gray-300 rounded-lg text-sm"
                                         placeholder="Discount %"
                                         min="0"
                                         max="100"
@@ -179,16 +265,16 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                                 {discount > 0 && (
                                     <div className="flex items-center justify-between text-sm text-green-600">
                                         <span>Discount</span>
-                                        <span>-${discountAmount.toFixed(2)}</span>
+                                        <span>-{formatCurrency(discountAmount)}</span>
                                     </div>
                                 )}
                                 <div className="flex items-center justify-between text-sm">
                                     <span>Tax (10%)</span>
-                                    <span>${tax.toFixed(2)}</span>
+                                    <span>{formatCurrency(tax)}</span>
                                 </div>
                                 <div className="flex items-center justify-between font-bold text-lg pt-2 border-t border-gray-200">
                                     <span>Total</span>
-                                    <span>${total.toFixed(2)}</span>
+                                    <span className="text-pink-600">{formatCurrency(total)}</span>
                                 </div>
                                 <div className="space-y-2 pt-2">
                                     <select

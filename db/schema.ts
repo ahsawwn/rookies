@@ -400,6 +400,25 @@ export const purchaseOrderItem = pgTable("purchase_order_item", {
     subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(),
 });
 
+export const purchaseOrderRelations = relations(purchaseOrder, ({ one, many }) => ({
+    supplier: one(supplier, {
+        fields: [purchaseOrder.supplierId],
+        references: [supplier.id],
+    }),
+    items: many(purchaseOrderItem),
+}));
+
+export const purchaseOrderItemRelations = relations(purchaseOrderItem, ({ one }) => ({
+    purchaseOrder: one(purchaseOrder, {
+        fields: [purchaseOrderItem.purchaseOrderId],
+        references: [purchaseOrder.id],
+    }),
+    product: one(product, {
+        fields: [purchaseOrderItem.productId],
+        references: [product.id],
+    }),
+}));
+
 export const transactionType = pgEnum("transaction_type", ["income", "expense"]);
 
 export type TransactionType = (typeof transactionType.enumValues)[number];
@@ -504,4 +523,6 @@ export const schema = {
     adminSessionRelations,
     cartRelations,
     cartItemRelations,
+    purchaseOrderRelations,
+    purchaseOrderItemRelations,
 };
