@@ -6,7 +6,7 @@ const Features = () => {
         {
             icon: <FiTruck className="w-8 h-8" />,
             title: "Free Delivery",
-            description: "On orders over $25. Fast and reliable delivery to your doorstep.",
+            description: "On orders over Rs. 2000. Fast and reliable delivery to your doorstep.",
             color: "bg-pink-100 text-pink-600"
         },
         {

@@ -87,28 +87,55 @@ export function LoginForm({
       setIsLoading(true);
       localStorage.setItem("lastLoginMethod", "google");
       
-      try {
-        const result = await authClient.signIn.social({
-          provider: "google",
-          callbackURL: "/",
-        });
-        
-        if (result?.data?.url) {
-          window.location.href = result.data.url;
-          return;
-        }
-      } catch (clientError: any) {
-        if (clientError?.data?.url || clientError?.url) {
-          window.location.href = clientError.data?.url || clientError.url;
-          return;
-        }
+      // #region agent log
+      const redirectAfterLogin = typeof window !== "undefined" ? localStorage.getItem("redirectAfterLogin") : null;
+      fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login-form.tsx:85',message:'Google sign in started',data:{redirectAfterLogin,callbackURL:'/'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+      
+      // Get redirectAfterLogin from localStorage and use it as callbackURL
+      const redirectUrl = typeof window !== "undefined" 
+        ? localStorage.getItem("redirectAfterLogin") || "/"
+        : "/";
+      
+      // Better Auth's signIn.social makes a POST request to /api/auth/sign-in/social
+      // The response should contain a URL to redirect to Google OAuth
+      // If it doesn't, we'll use the direct authorize endpoint
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: redirectUrl,
+      });
+      
+      console.log("Google OAuth result:", result);
+      console.log("Result type:", typeof result);
+      console.log("Result keys:", result ? Object.keys(result) : []);
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login-form.tsx:96',message:'Google OAuth result received',data:{hasResult:!!result,resultType:typeof result,hasData:!!result?.data,hasUrl:!!result?.data?.url,resultString:result ? JSON.stringify(result).substring(0,300) : 'null',redirectUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+      
+      // Check multiple possible response formats
+      const oauthUrl = result?.data?.url || result?.url || result?.redirectUrl || result?.data?.redirectUrl;
+      
+      if (oauthUrl && typeof oauthUrl === 'string') {
+        console.log("Found OAuth URL, redirecting:", oauthUrl);
+        window.location.href = oauthUrl;
+        return;
       }
       
-      const baseURL = window.location.origin;
-      const fallbackUrl = `${baseURL}/api/auth/social/google?callbackURL=${encodeURIComponent("/")}`;
-      window.location.href = fallbackUrl;
+      // If no URL in response, use direct navigation to Better Auth's authorize endpoint
+      // Better Auth catch-all route handles: /api/auth/authorize/{provider}
+      console.log("No URL in result, using direct authorize endpoint");
+      const baseURL = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+      const authUrl = `${baseURL}/api/auth/authorize/google?callbackURL=${encodeURIComponent(redirectUrl)}`;
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login-form.tsx:103',message:'Using direct Google OAuth URL',data:{authUrl,redirectUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+      
+      console.log("Redirecting to:", authUrl);
+      window.location.href = authUrl;
     } catch (error: any) {
-      console.error("Google sign in error:", error);
+      console.error("Google sign in outer error:", error);
       toast.error("Failed to sign in with Google. Please check console.");
       setIsLoading(false);
     }
@@ -136,6 +163,12 @@ export function LoginForm({
 
     setIsLoading(true);
     const phone = phoneForm.getValues("phone");
+    
+    // #region agent log
+    const redirectAfterLogin = typeof window !== "undefined" ? localStorage.getItem("redirectAfterLogin") : null;
+    fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login-form.tsx:131',message:'Phone OTP verification started',data:{redirectAfterLogin},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H3'})}).catch(()=>{});
+    // #endregion
+    
     const { success, message } = await verifyOTPAndLogin(phone, otpCode);
 
     if (success) {
@@ -162,6 +195,10 @@ export function LoginForm({
         ? localStorage.getItem("redirectAfterLogin") || "/"
         : "/";
       
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login-form.tsx:161',message:'Phone OTP success, redirecting',data:{redirectUrl,willRemoveRedirectAfterLogin:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H3'})}).catch(()=>{});
+      // #endregion
+      
       if (typeof window !== "undefined") {
         localStorage.removeItem("redirectAfterLogin");
       }
@@ -181,6 +218,11 @@ export function LoginForm({
   async function onSubmitEmail(values: z.infer<typeof emailFormSchema>) {
     setIsLoading(true);
     try {
+      // #region agent log
+      const redirectAfterLogin = typeof window !== "undefined" ? localStorage.getItem("redirectAfterLogin") : null;
+      fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login-form.tsx:181',message:'Email login started',data:{redirectAfterLogin},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H3'})}).catch(()=>{});
+      // #endregion
+      
       const result = await authSignIn.email({
         email: values.email,
         password: values.password,
@@ -193,12 +235,37 @@ export function LoginForm({
       }
 
       localStorage.setItem("lastLoginMethod", "email");
+      
+      // Link guest orders to user account
+      try {
+        const { linkGuestOrdersToUser } = await import("@/server/orders");
+        const guestEmail = values.email;
+        const guestSessionId = typeof window !== "undefined" ? localStorage.getItem("guestSessionId") : undefined;
+        
+        // Get user ID from session
+        const sessionData = await authClient.getSession();
+        if (sessionData.data?.session?.user?.id) {
+          await linkGuestOrdersToUser(
+            sessionData.data.session.user.id,
+            guestEmail,
+            guestSessionId || undefined
+          );
+        }
+      } catch (error) {
+        console.error("Error linking guest orders:", error);
+        // Don't block login if linking fails
+      }
+      
       toast.success("Signed in successfully");
       
       // Check for redirect URL (e.g., from cart page)
       const redirectUrl = typeof window !== "undefined" 
         ? localStorage.getItem("redirectAfterLogin") || "/"
         : "/";
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'login-form.tsx:202',message:'Email login success, redirecting',data:{redirectUrl,willRemoveRedirectAfterLogin:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H3'})}).catch(()=>{});
+      // #endregion
       
       if (typeof window !== "undefined") {
         localStorage.removeItem("redirectAfterLogin");

@@ -6,10 +6,13 @@ import { useRouter } from 'next/navigation';
 import { FiShoppingCart, FiUser, FiX, FiLogOut, FiSettings, FiHeart, FiPackage, FiHome, FiMapPin } from 'react-icons/fi';
 import { useSession, signOut as authSignOut } from '@/lib/auth-client';
 import { useCart } from '@/contexts/CartContext';
+import { CartDrawer } from '@/components/cart/CartDrawer';
 import Image from 'next/image';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
     const { data: sessionData, isPending } = useSession();
     const router = useRouter();
     const menuRef = useRef<HTMLDivElement>(null);
@@ -23,6 +26,15 @@ const Navbar = () => {
     const session = (!isPending && sessionData) ? (sessionData as any) : null;
     const user = session?.user || null;
     const isAdmin = user?.email?.includes('admin') || false;
+
+    // Handle scroll for sticky header with blur
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 10);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -67,7 +79,13 @@ const Navbar = () => {
     return (
         <>
             {/* Main Navigation - Mobile First */}
-            <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-200">
+            <nav className={`
+                sticky top-0 z-50 w-full transition-all duration-300
+                ${isScrolled 
+                    ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-200/50' 
+                    : 'bg-white border-b border-gray-200'
+                }
+            `}>
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="flex items-center justify-between h-16">
                         {/* Left: Hamburger Menu */}
@@ -86,7 +104,7 @@ const Navbar = () => {
 
                         {/* Center: Logo */}
                         <Link href="/" className="flex items-center gap-2 absolute left-1/2 transform -translate-x-1/2">
-                            <div className="w-10 h-10 bg-[#FF6B9D] rounded-lg flex items-center justify-center shadow-sm">
+                            <div className="w-10 h-10 bg-[#E91E63] rounded-lg flex items-center justify-center shadow-sm">
                                 <span className="text-white font-bold text-xl">R</span>
                             </div>
                             <span className="text-2xl font-bold text-black tracking-tight hidden sm:block">ROOKIES</span>
@@ -94,19 +112,19 @@ const Navbar = () => {
 
                         {/* Right: Cart & Profile */}
                         <div className="flex items-center gap-3">
-                            {/* Cart */}
-                            <Link 
-                                href="/cart" 
+                            {/* Cart Drawer Trigger */}
+                            <button
+                                onClick={() => setIsCartOpen(true)}
                                 className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
                                 aria-label="Shopping Cart"
                             >
                                 <FiShoppingCart className="w-6 h-6 text-black" />
                                 {cartCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-[#FF6B9D] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                                    <span className="absolute -top-1 -right-1 bg-[#E91E63] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
                                         {cartCount > 9 ? '9+' : cartCount}
                                     </span>
                                 )}
-                            </Link>
+                            </button>
 
                             {/* Profile Button (when logged in) or Sign In (when not) */}
                             {user ? (
@@ -124,7 +142,7 @@ const Navbar = () => {
                                             className="rounded-full"
                                         />
                                     ) : (
-                                        <div className="w-6 h-6 rounded-full bg-[#FF6B9D] flex items-center justify-center">
+                                        <div className="w-6 h-6 rounded-full bg-[#E91E63] flex items-center justify-center">
                                             <span className="text-white text-xs font-bold">
                                                 {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
                                             </span>
@@ -134,7 +152,7 @@ const Navbar = () => {
                             ) : (
                                 <Link
                                     href="/login"
-                                    className="px-4 py-2 rounded-full bg-[#FF6B9D] text-white text-sm font-medium hover:bg-[#FF4A7A] transition-colors"
+                                    className="px-4 py-2 rounded-full bg-[#E91E63] text-white text-sm font-medium hover:bg-[#C2185B] transition-colors"
                                 >
                                     Sign in
                                 </Link>
@@ -155,7 +173,7 @@ const Navbar = () => {
                     {/* Menu Header */}
                     <div className="flex items-center justify-between p-6 border-b border-gray-200">
                         <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-[#FF6B9D] rounded-lg flex items-center justify-center">
+                            <div className="w-10 h-10 bg-[#E91E63] rounded-lg flex items-center justify-center shadow-sm">
                                 <span className="text-white font-bold text-xl">R</span>
                             </div>
                             <span className="text-xl font-bold text-black">ROOKIES</span>
@@ -202,7 +220,7 @@ const Navbar = () => {
                                             className="rounded-full"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 rounded-full bg-[#FF6B9D] flex items-center justify-center">
+                                        <div className="w-10 h-10 rounded-full bg-[#E91E63] flex items-center justify-center">
                                             <span className="text-white font-bold">
                                                 {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
                                             </span>
@@ -249,7 +267,7 @@ const Navbar = () => {
                                     <Link
                                         href="/admin"
                                         onClick={() => setIsMenuOpen(false)}
-                                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#FF6B9D] hover:bg-pink-50 transition-colors"
+                                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#E91E63] hover:bg-pink-50 transition-colors"
                                     >
                                         <FiSettings className="w-5 h-5" />
                                         <span className="font-medium">Admin Panel</span>
@@ -269,7 +287,7 @@ const Navbar = () => {
                                 <Link
                                     href="/login"
                                     onClick={() => setIsMenuOpen(false)}
-                                    className="block w-full text-center px-4 py-3 rounded-full bg-[#FF6B9D] text-white font-medium hover:bg-[#FF4A7A] transition-colors"
+                                    className="block w-full text-center px-4 py-3 rounded-full bg-[#E91E63] text-white font-medium hover:bg-[#C2185B] transition-colors"
                                 >
                                     Sign in
                                 </Link>
@@ -282,11 +300,14 @@ const Navbar = () => {
             {/* Overlay */}
             {isMenuOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40"
+                    className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm transition-opacity"
                     onClick={() => setIsMenuOpen(false)}
                     aria-hidden="true"
                 />
             )}
+
+            {/* Cart Drawer */}
+            <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
         </>
     );
 };

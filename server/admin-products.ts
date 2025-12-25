@@ -3,6 +3,7 @@
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { db } from "@/db/drizzle";
 import { product } from "@/db/schema";
 import { getCurrentAdmin } from "./admin";
@@ -20,6 +21,36 @@ function slugify(text: string): string {
         .replace(/-+/g, "-")
         .trim();
 }
+
+// Validation schemas
+const createProductSchema = z.object({
+    name: z.string().min(1, "Name is required").max(200, "Name must be less than 200 characters"),
+    description: z.string().max(5000, "Description must be less than 5000 characters").optional(),
+    shortDescription: z.string().max(500, "Short description must be less than 500 characters").optional(),
+    price: z.string().regex(/^\d+(\.\d{1,2})?$/, "Price must be a valid number"),
+    originalPrice: z.string().regex(/^\d+(\.\d{1,2})?$/, "Original price must be a valid number").optional().nullable(),
+    image: z.string().url("Image must be a valid URL").max(1000, "Image URL too long"),
+    images: z.array(z.string().url().max(1000)).optional().nullable(),
+    category: z.string().min(1, "Category is required").max(50, "Category must be less than 50 characters"),
+    calories: z.number().int().positive().max(10000, "Calories must be reasonable").optional().nullable(),
+    stock: z.number().int().nonnegative("Stock cannot be negative"),
+    isFeatured: z.boolean().optional(),
+});
+
+const updateProductSchema = z.object({
+    name: z.string().min(1).max(200).optional(),
+    description: z.string().max(5000).optional(),
+    shortDescription: z.string().max(500).optional(),
+    price: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
+    originalPrice: z.string().regex(/^\d+(\.\d{1,2})?$/).optional().nullable(),
+    image: z.string().url().max(1000).optional(),
+    images: z.array(z.string().url().max(1000)).optional().nullable(),
+    category: z.string().min(1).max(50).optional(),
+    calories: z.number().int().positive().max(10000).optional().nullable(),
+    stock: z.number().int().nonnegative().optional(),
+    isFeatured: z.boolean().optional(),
+    isActive: z.boolean().optional(),
+});
 
 /**
  * Create a new product
@@ -44,24 +75,27 @@ export async function createProduct(data: {
             redirect("/admin/login");
         }
 
+        // Validate input
+        const validatedData = createProductSchema.parse(data);
+
         const id = generateId();
-        const slug = slugify(data.name);
+        const slug = slugify(validatedData.name);
 
         await db.insert(product).values({
             id,
-            name: data.name,
+            name: validatedData.name,
             slug,
-            description: data.description || null,
-            shortDescription: data.shortDescription || null,
-            price: data.price,
-            originalPrice: data.originalPrice || null,
-            image: data.image,
-            images: data.images || null,
-            category: data.category,
-            calories: data.calories || null,
+            description: validatedData.description || null,
+            shortDescription: validatedData.shortDescription || null,
+            price: validatedData.price,
+            originalPrice: validatedData.originalPrice || null,
+            image: validatedData.image,
+            images: validatedData.images || null,
+            category: validatedData.category,
+            calories: validatedData.calories || null,
             isActive: true,
-            isFeatured: data.isFeatured || false,
-            stock: data.stock,
+            isFeatured: validatedData.isFeatured || false,
+            stock: validatedData.stock,
         });
 
         return {
@@ -70,6 +104,12 @@ export async function createProduct(data: {
         };
     } catch (error) {
         console.error("Create product error:", error);
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                error: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
+            };
+        }
         const e = error as Error;
         return {
             success: false,
@@ -105,25 +145,36 @@ export async function updateProduct(
             redirect("/admin/login");
         }
 
+        // Validate productId
+        if (!productId || typeof productId !== 'string' || productId.length > 100) {
+            return {
+                success: false,
+                error: "Invalid product ID",
+            };
+        }
+
+        // Validate input
+        const validatedData = updateProductSchema.parse(data);
+
         const updateData: any = {
             updatedAt: new Date(),
         };
 
-        if (data.name) {
-            updateData.name = data.name;
-            updateData.slug = slugify(data.name);
+        if (validatedData.name) {
+            updateData.name = validatedData.name;
+            updateData.slug = slugify(validatedData.name);
         }
-        if (data.description !== undefined) updateData.description = data.description;
-        if (data.shortDescription !== undefined) updateData.shortDescription = data.shortDescription;
-        if (data.price) updateData.price = data.price;
-        if (data.originalPrice !== undefined) updateData.originalPrice = data.originalPrice;
-        if (data.image) updateData.image = data.image;
-        if (data.images !== undefined) updateData.images = data.images;
-        if (data.category) updateData.category = data.category;
-        if (data.calories !== undefined) updateData.calories = data.calories;
-        if (data.stock !== undefined) updateData.stock = data.stock;
-        if (data.isFeatured !== undefined) updateData.isFeatured = data.isFeatured;
-        if (data.isActive !== undefined) updateData.isActive = data.isActive;
+        if (validatedData.description !== undefined) updateData.description = validatedData.description;
+        if (validatedData.shortDescription !== undefined) updateData.shortDescription = validatedData.shortDescription;
+        if (validatedData.price) updateData.price = validatedData.price;
+        if (validatedData.originalPrice !== undefined) updateData.originalPrice = validatedData.originalPrice;
+        if (validatedData.image) updateData.image = validatedData.image;
+        if (validatedData.images !== undefined) updateData.images = validatedData.images;
+        if (validatedData.category) updateData.category = validatedData.category;
+        if (validatedData.calories !== undefined) updateData.calories = validatedData.calories;
+        if (validatedData.stock !== undefined) updateData.stock = validatedData.stock;
+        if (validatedData.isFeatured !== undefined) updateData.isFeatured = validatedData.isFeatured;
+        if (validatedData.isActive !== undefined) updateData.isActive = validatedData.isActive;
 
         await db.update(product).set(updateData).where(eq(product.id, productId));
 
@@ -132,6 +183,12 @@ export async function updateProduct(
         };
     } catch (error) {
         console.error("Update product error:", error);
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                error: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
+            };
+        }
         const e = error as Error;
         return {
             success: false,
@@ -149,6 +206,14 @@ export async function deleteProduct(productId: string) {
 
         if (!success || !admin) {
             redirect("/admin/login");
+        }
+
+        // Validate productId
+        if (!productId || typeof productId !== 'string' || productId.length > 100) {
+            return {
+                success: false,
+                error: "Invalid product ID",
+            };
         }
 
         await db.delete(product).where(eq(product.id, productId));
@@ -175,6 +240,14 @@ export async function toggleProductStatus(productId: string) {
 
         if (!success || !admin) {
             redirect("/admin/login");
+        }
+
+        // Validate productId
+        if (!productId || typeof productId !== 'string' || productId.length > 100) {
+            return {
+                success: false,
+                error: "Invalid product ID",
+            };
         }
 
         const productRecord = await db.query.product.findFirst({

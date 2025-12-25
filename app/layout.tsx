@@ -12,6 +12,19 @@ const nunito = Nunito({
 export const metadata: Metadata = {
     title: 'ROOKIES Home based Bakery - Cookies, Shakes, Cupcakes, Cakes, Croissants & Breads',
     description: 'Fresh baked goods from Pakistan. Order cookies, shakes, cupcakes, cakes, croissants, and breads online. Home-based bakery delivering quality treats.',
+    manifest: '/manifest.json',
+    themeColor: '#E91E63',
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: 'default',
+        title: 'ROOKIES Bakery',
+    },
+    viewport: {
+        width: 'device-width',
+        initialScale: 1,
+        maximumScale: 1,
+        userScalable: false,
+    },
 };
 
 export default function RootLayout({
@@ -21,10 +34,35 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en" className="scroll-smooth">
+        <head>
+            <link rel="manifest" href="/manifest.json" />
+            <link rel="apple-touch-icon" href="/icon-192.png" />
+            <meta name="theme-color" content="#E91E63" />
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+            <meta name="apple-mobile-web-app-title" content="ROOKIES Bakery" />
+        </head>
         <body className={`${nunito.variable} font-sans antialiased`} suppressHydrationWarning>
         <Providers>
             {children}
         </Providers>
+        <script
+            dangerouslySetInnerHTML={{
+                __html: `
+                    if ('serviceWorker' in navigator) {
+                        window.addEventListener('load', () => {
+                            navigator.serviceWorker.register('/sw.js')
+                                .then((registration) => {
+                                    console.log('SW registered:', registration);
+                                })
+                                .catch((error) => {
+                                    console.log('SW registration failed:', error);
+                                });
+                        });
+                    }
+                `,
+            }}
+        />
         </body>
         </html>
     );

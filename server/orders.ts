@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db/drizzle";
@@ -28,6 +28,12 @@ export interface CreateOrderInput {
     pickupBranchId?: string;
     pickupName?: string;
     pickupPhone?: string;
+    // Guest order fields
+    guestEmail?: string;
+    guestName?: string;
+    guestPhone?: string;
+    guestSessionId?: string;
+    guestIpAddress?: string;
 }
 
 function generateVerificationCode(): string {
@@ -35,7 +41,23 @@ function generateVerificationCode(): string {
 }
 
 /**
- * Create a new order
+ * Get client IP address from request headers
+ */
+function getClientIp(headers: Headers): string {
+    // Check various headers for IP address
+    const forwarded = headers.get("x-forwarded-for");
+    if (forwarded) {
+        return forwarded.split(",")[0].trim();
+    }
+    const realIp = headers.get("x-real-ip");
+    if (realIp) {
+        return realIp;
+    }
+    return "unknown";
+}
+
+/**
+ * Create a new order (supports both authenticated and guest orders)
  */
 export async function createOrder(input: CreateOrderInput) {
     try {
@@ -43,11 +65,16 @@ export async function createOrder(input: CreateOrderInput) {
             headers: await headers(),
         });
 
-        if (!session?.user) {
-            return {
-                success: false,
-                error: "You must be logged in to place an order",
-            };
+        const isGuestOrder = !session?.user;
+        
+        // For guest orders, require contact information
+        if (isGuestOrder) {
+            if (!input.guestEmail || !input.guestName || !input.guestPhone) {
+                return {
+                    success: false,
+                    error: "Please provide your name, email, and phone number to place an order",
+                };
+            }
         }
 
         // Validate stock availability
@@ -78,9 +105,13 @@ export async function createOrder(input: CreateOrderInput) {
         // Generate verification code for pickup orders
         const verificationCode = input.deliveryType === "pickup" ? generateVerificationCode() : null;
 
+        // Get client IP for guest orders
+        const requestHeaders = await headers();
+        const clientIp = isGuestOrder ? getClientIp(requestHeaders) : null;
+
         await db.insert(order).values({
             id: orderId,
-            userId: session.user.id,
+            userId: session?.user?.id || null, // Null for guest orders
             orderNumber,
             totalAmount: input.totalAmount.toString(),
             status: "pending",
@@ -90,8 +121,14 @@ export async function createOrder(input: CreateOrderInput) {
             deliveryAddress: input.deliveryAddress || null,
             pickupBranchId: input.pickupBranchId || null,
             pickupVerificationCode: verificationCode,
-            pickupName: input.pickupName || null,
-            pickupPhone: input.pickupPhone || null,
+            pickupName: input.pickupName || input.guestName || null,
+            pickupPhone: input.pickupPhone || input.guestPhone || null,
+            // Guest order fields
+            guestSessionId: input.guestSessionId || null,
+            guestIpAddress: clientIp,
+            guestEmail: input.guestEmail || null,
+            guestName: input.guestName || null,
+            guestPhone: input.guestPhone || null,
         });
 
         // Create order items and update stock
@@ -118,28 +155,33 @@ export async function createOrder(input: CreateOrderInput) {
         }
 
         // Send order confirmation email (async, don't block order creation)
-        (async () => {
-            try {
-                const { sendOrderConfirmationEmail } = await import("@/server/email");
-                
-                // Fetch order items with product details
-                const orderItems = await Promise.all(
-                    input.items.map(async (item) => {
-                        const productRecord = await db.query.product.findFirst({
-                            where: eq(product.id, item.productId),
-                        });
-                        return {
-                            product: productRecord,
-                            quantity: item.quantity,
-                            priceAtTime: productRecord?.price || "0",
-                        };
-                    })
-                );
+        // For guest orders, use guest email; for authenticated orders, use user email
+        const emailToSend = isGuestOrder ? input.guestEmail : session?.user?.email;
+        const userName = isGuestOrder ? input.guestName : session?.user?.name;
+        
+        if (emailToSend) {
+            (async () => {
+                try {
+                    const { sendOrderConfirmationEmail } = await import("@/server/email");
+                    
+                    // Fetch order items with product details
+                    const orderItems = await Promise.all(
+                        input.items.map(async (item) => {
+                            const productRecord = await db.query.product.findFirst({
+                                where: eq(product.id, item.productId),
+                            });
+                            return {
+                                product: productRecord,
+                                quantity: item.quantity,
+                                priceAtTime: productRecord?.price || "0",
+                            };
+                        })
+                    );
 
-                const orderData = {
-                    orderNumber,
-                    totalAmount: input.totalAmount.toString(),
-                    deliveryType: input.deliveryType,
+                    const orderData = {
+                        orderNumber,
+                        totalAmount: input.totalAmount.toString(),
+                        deliveryType: input.deliveryType,
                     deliveryAddress: input.deliveryAddress || undefined,
                     pickupName: input.pickupName || undefined,
                     pickupPhone: input.pickupPhone || undefined,
@@ -153,14 +195,15 @@ export async function createOrder(input: CreateOrderInput) {
                 
                 await sendOrderConfirmationEmail(
                     orderData as any,
-                    session.user.email || "",
-                    session.user.name || null
+                    emailToSend || "",
+                    userName || null
                 );
             } catch (emailError) {
                 // Don't fail the order if email fails
                 console.error("Failed to send order confirmation email:", emailError);
             }
         })();
+        }
 
         return {
             success: true,
@@ -245,25 +288,60 @@ export async function getOrderByNumber(orderNumber: string) {
 }
 
 /**
- * Get all orders (for admin)
+ * Get all orders (for admin) with pagination
  */
-export async function getAllOrders() {
+export async function getAllOrders(page: number = 1, limit: number = 20) {
     try {
-        const orders = await db.query.order.findMany({
-            orderBy: [desc(order.createdAt)],
-            with: {
-                user: true,
-                items: {
-                    with: {
-                        product: true,
+        // Validate pagination params
+        const pageNum = Math.max(1, Math.floor(page));
+        const limitNum = Math.max(1, Math.min(100, Math.floor(limit))); // Max 100 items per page
+        const offset = (pageNum - 1) * limitNum;
+
+        const [orders, totalCount] = await Promise.all([
+            db.query.order.findMany({
+                orderBy: [desc(order.createdAt)],
+                limit: limitNum,
+                offset: offset,
+                with: {
+                    user: {
+                        columns: {
+                            id: true,
+                            name: true,
+                            email: true,
+                        },
+                    },
+                    items: {
+                        limit: 10, // Limit items per order for performance
+                        with: {
+                            product: {
+                                columns: {
+                                    id: true,
+                                    name: true,
+                                    image: true,
+                                    price: true,
+                                },
+                            },
+                        },
                     },
                 },
-            },
-        });
+            }),
+            db.select({ count: sql<number>`count(*)` }).from(order),
+        ]);
+
+        const total = Number(totalCount[0]?.count || 0);
+        const totalPages = Math.ceil(total / limitNum);
 
         return {
             success: true,
             orders,
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total,
+                totalPages,
+                hasNext: pageNum < totalPages,
+                hasPrev: pageNum > 1,
+            },
         };
     } catch (error) {
         console.error("Get all orders error:", error);
@@ -271,6 +349,14 @@ export async function getAllOrders() {
         return {
             success: false,
             orders: [],
+            pagination: {
+                page: 1,
+                limit: 20,
+                total: 0,
+                totalPages: 0,
+                hasNext: false,
+                hasPrev: false,
+            },
             error: e.message || "Failed to fetch orders",
         };
     }

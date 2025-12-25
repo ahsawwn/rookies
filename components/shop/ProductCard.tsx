@@ -40,16 +40,11 @@ export function ProductCard({ product, onFavoriteToggle, isFavorite = false }: P
           )
         : 0;
 
-    const formattedPrice = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-    }).format(parseFloat(product.price));
+    // Format price in Pakistani Rupees
+    const formattedPrice = `Rs. ${parseFloat(product.price).toFixed(2)}`;
 
     const formattedOriginalPrice = product.originalPrice
-        ? new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "USD",
-          }).format(parseFloat(product.originalPrice))
+        ? `Rs. ${parseFloat(product.originalPrice).toFixed(2)}`
         : null;
 
     const categoryColors: Record<string, string> = {
@@ -60,25 +55,26 @@ export function ProductCard({ product, onFavoriteToggle, isFavorite = false }: P
 
     return (
         <div
-            className="group relative bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-[#FF6B9D] transition-all duration-300"
+            className="group relative bg-white rounded-2xl overflow-hidden border border-gray-200 hover:border-[#E91E63] hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            {/* Image Container */}
-            <div className="relative aspect-square overflow-hidden bg-gray-50">
+            {/* Image Container - Larger with minimum 400px */}
+            <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-[#FFF8F0] to-[#F5E6D3] min-h-[400px]">
                 {!imageError ? (
                     <Image
                         src={product.image}
                         alt={product.name}
                         fill
                         className={cn(
-                            "object-cover transition-transform duration-500",
-                            isHovered && "scale-110"
+                            "object-cover transition-transform duration-700 ease-out",
+                            isHovered && "scale-105"
                         )}
                         onError={() => setImageError(true)}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#FFF8F0] to-[#F5E6D3]">
                         <span className="text-6xl">🍪</span>
                     </div>
                 )}
@@ -111,7 +107,7 @@ export function ProductCard({ product, onFavoriteToggle, isFavorite = false }: P
                             e.preventDefault();
                             onFavoriteToggle(product.id);
                         }}
-                        className="absolute bottom-3 right-3 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+                        className="absolute bottom-3 right-3 z-10 w-11 h-11 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-gray-100"
                     >
                         <FiHeart
                             className={cn(
@@ -122,22 +118,17 @@ export function ProductCard({ product, onFavoriteToggle, isFavorite = false }: P
                     </button>
                 )}
 
-                {/* Hover Overlay with Actions */}
+                {/* Hover Overlay with Quick Add Button */}
                 <div
                     className={cn(
-                        "absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center gap-3 transition-opacity duration-300",
+                        "absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end justify-center pb-6 transition-opacity duration-300",
                         isHovered ? "opacity-100" : "opacity-0"
                     )}
                 >
-                    <Link
-                        href={`/shop/${product.slug}`}
-                        className="w-12 h-12 bg-white rounded-full flex items-center justify-center hover:bg-pink-50 transition-colors shadow-lg"
-                    >
-                        <FiEye className="w-5 h-5 text-gray-700" />
-                    </Link>
                     <button 
                         onClick={async (e) => {
                             e.preventDefault();
+                            e.stopPropagation();
                             try {
                                 await addItem(product.id, 1, {
                                     id: product.id,
@@ -146,52 +137,60 @@ export function ProductCard({ product, onFavoriteToggle, isFavorite = false }: P
                                     image: product.image,
                                     slug: product.slug,
                                 });
-                                toast.success(`${product.name} added to cart!`);
+                                toast.success(`${product.name} added to cart!`, {
+                                    style: {
+                                        background: '#E91E63',
+                                        color: 'white',
+                                    },
+                                });
                             } catch (error) {
                                 toast.error("Failed to add item to cart");
                             }
                         }}
-                        className="w-12 h-12 bg-[#FF6B9D] rounded-full flex items-center justify-center hover:bg-[#FF4A7A] transition-colors shadow-lg"
+                        className="px-6 py-3 bg-[#E91E63] hover:bg-[#C2185B] text-white font-bold rounded-full flex items-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
                     >
-                        <FiShoppingCart className="w-5 h-5 text-white" />
+                        <FiShoppingCart className="w-5 h-5" />
+                        <span>Quick Add</span>
                     </button>
                 </div>
             </div>
 
             {/* Product Info */}
-            <div className="p-5">
-                <div className="mb-2">
+            <div className="p-6">
+                <div className="mb-3">
                     <Link href={`/shop/${product.slug}`}>
-                        <h3 className="text-lg font-bold text-black mb-1 hover:text-[#FF6B9D] transition-colors line-clamp-1">
+                        <h3 className="text-xl font-bold text-[#1a1a1a] mb-2 hover:text-[#E91E63] transition-colors line-clamp-1">
                             {product.name}
                         </h3>
                     </Link>
                     {product.shortDescription && (
-                        <p className="text-sm text-gray-600 line-clamp-2">{product.shortDescription}</p>
+                        <p className="text-sm text-[#6B6B6B] line-clamp-2 leading-relaxed">{product.shortDescription}</p>
                     )}
                 </div>
 
-                {/* Price and Calories */}
-                <div className="flex items-center justify-between mt-3">
+                {/* Price, Calories, and Badge */}
+                <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center gap-2">
                         {hasDiscount && (
                             <span className="text-sm text-gray-400 line-through">
                                 {formattedOriginalPrice}
                             </span>
                         )}
-                        <span className="text-xl font-bold text-[#FF6B9D]">{formattedPrice}</span>
+                        <span className="text-2xl font-bold text-[#E91E63]">{formattedPrice}</span>
                     </div>
                     {product.calories && (
-                        <span className="text-xs text-gray-500">{product.calories} cal</span>
+                        <Badge className="bg-[#F5E6D3] text-[#1a1a1a] border-0 font-medium">
+                            {product.calories} cal
+                        </Badge>
                     )}
                 </div>
 
-                {/* Add to Cart Button */}
+                {/* View Details Button */}
                 <Link
                     href={`/shop/${product.slug}`}
-                    className="mt-4 w-full bg-gray-50 hover:bg-gray-100 text-black font-medium py-3 px-4 rounded-full flex items-center justify-center space-x-2 transition-all duration-300"
+                    className="mt-4 w-full bg-gradient-to-r from-[#FFF8F0] to-[#F5E6D3] hover:from-[#E91E63] hover:to-[#C2185B] text-[#1a1a1a] hover:text-white font-semibold py-3 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-105"
                 >
-                    <FiShoppingCart className="w-4 h-4" />
+                    <FiEye className="w-4 h-4" />
                     <span>View Details</span>
                 </Link>
             </div>

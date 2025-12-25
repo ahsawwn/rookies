@@ -130,7 +130,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         loadCart();
     }, [user?.id]); // Reload when session changes
 
-    // Sync to localStorage and database
+    // Sync to localStorage and database (called after state updates, not during render)
     const syncCart = useCallback(
         async (newItems: CartItem[]) => {
             if (typeof window === "undefined") return;
@@ -155,8 +155,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 // Don't throw - localStorage is the source of truth
             }
         },
-        []
+        [user?.id]
     );
+
+    // Sync cart to database after items change (but not during initial load)
+    useEffect(() => {
+        if (!isInitialized) return; // Don't sync during initial load
+        
+        // Debounce sync to avoid too many database calls
+        const syncTimeout = setTimeout(() => {
+            syncCart(items);
+        }, 500);
+
+        return () => clearTimeout(syncTimeout);
+    }, [items, isInitialized, syncCart]);
 
     const addItem = useCallback(
         async (productId: string, quantity: number = 1, productDetails?: CartItem["product"]) => {
@@ -186,11 +198,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                         },
                     ];
                 }
-                syncCart(newItems);
+                // Update localStorage immediately for instant UI feedback
+                if (typeof window !== "undefined") {
+                    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems));
+                }
                 return newItems;
             });
         },
-        [syncCart]
+        []
     );
 
     const removeItem = useCallback(
@@ -199,11 +214,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 const newItems = prevItems.filter(
                     (item) => item.productId !== productId
                 );
-                syncCart(newItems);
+                // Update localStorage immediately for instant UI feedback
+                if (typeof window !== "undefined") {
+                    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems));
+                }
                 return newItems;
             });
         },
-        [syncCart]
+        []
     );
 
     const updateQuantity = useCallback(
@@ -217,11 +235,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 const newItems = prevItems.map((item) =>
                     item.productId === productId ? { ...item, quantity } : item
                 );
-                syncCart(newItems);
+                // Update localStorage immediately for instant UI feedback
+                if (typeof window !== "undefined") {
+                    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems));
+                }
                 return newItems;
             });
         },
-        [syncCart, removeItem]
+        [removeItem]
     );
 
     const clearCart = useCallback(async () => {

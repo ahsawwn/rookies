@@ -6,11 +6,12 @@ import { getAllOrders } from "@/server/orders";
 import { getProducts } from "@/server/products";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default async function AdminDashboard() {
-    const ordersResult = await getAllOrders();
+    const ordersResult = await getAllOrders(1, 10); // Get first 10 orders for dashboard
     const orders = ordersResult.success ? ordersResult.orders : [];
-    const productsResult = await getProducts({});
+    const productsResult = await getProducts({ limit: 50 }); // Get first 50 products
     const products = productsResult.success ? productsResult.products : [];
 
     const today = new Date();

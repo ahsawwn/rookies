@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
 import { useSession } from "@/contexts/SessionContext";
 import { createOrder } from "@/server/orders";
@@ -14,19 +15,34 @@ import { toast } from "sonner";
 
 export default function CheckoutPage() {
     const { items, getTotal, clearCart } = useCart();
-    const { session } = useSession();
+    const { session, isLoading: sessionLoading } = useSession();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
     const [step, setStep] = useState<"delivery" | "payment" | "review">("delivery");
 
+    // Get delivery type from URL params or localStorage
+    const getDeliveryType = (): "delivery" | "pickup" => {
+        const urlType = searchParams.get("type") as "delivery" | "pickup" | null;
+        if (urlType === "delivery" || urlType === "pickup") {
+            return urlType;
+        }
+        if (typeof window !== "undefined") {
+            const storedType = localStorage.getItem("selectedDeliveryType") as "delivery" | "pickup" | null;
+            if (storedType === "delivery" || storedType === "pickup") {
+                return storedType;
+            }
+        }
+        return "delivery"; // Default
+    };
+
     // Delivery form state
-    const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
+    const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">(getDeliveryType());
     const [deliveryAddress, setDeliveryAddress] = useState({
         street: "",
         city: "",
         state: "",
         zipCode: "",
-        phone: "",
     });
     
     // Pickup form state
@@ -38,36 +54,70 @@ export default function CheckoutPage() {
     // Payment form state
     const [paymentMethod, setPaymentMethod] = useState("cash");
 
-    // Redirect to login if no session and cart has items
-    useEffect(() => {
-        if (!session?.user && items.length > 0) {
-            if (typeof window !== "undefined") {
-                localStorage.setItem("redirectAfterLogin", "/checkout");
-            }
-            router.push("/login");
-        }
-    }, [session, items.length, router]);
+    // Guest contact info (required for all orders)
+    const [guestInfo, setGuestInfo] = useState({
+        name: "",
+        email: "",
+        phone: "",
+    });
+
+    // Guest checkout - no login required
+    // Just ensure cart has items
 
     useEffect(() => {
+        // Wait for session to finish loading before checking cart
+        if (sessionLoading) return;
+        
         if (items.length === 0) {
             router.push("/cart");
+            return;
         }
-    }, [items, router]);
+
+        // Check if delivery type is selected, if not redirect to order-type page
+        const type = getDeliveryType();
+        if (!type || (type !== "delivery" && type !== "pickup")) {
+            router.push("/order-type");
+            return;
+        }
+        setDeliveryType(type);
+    }, [items, sessionLoading, router, searchParams]);
 
     const subtotal = getTotal();
     const shipping = subtotal > 2000 ? 0 : 200; // Free shipping on orders Rs. 2000+
     const tax = subtotal * 0.1;
     const total = subtotal + shipping + tax;
 
+    // Get or create guest session ID
+    const getGuestSessionId = () => {
+        if (typeof window === "undefined") return undefined;
+        let sessionId = localStorage.getItem("guestSessionId");
+        if (!sessionId) {
+            sessionId = `guest-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            localStorage.setItem("guestSessionId", sessionId);
+        }
+        return sessionId;
+    };
+
     const handlePlaceOrder = async () => {
-        if (!session?.user) {
-            toast.error("Please log in to place an order");
-            // Store redirect URL for after login
-            if (typeof window !== "undefined") {
-                localStorage.setItem("redirectAfterLogin", "/checkout");
-            }
-            router.push("/login");
+        // Validate guest contact info (required for all orders)
+        if (!guestInfo.name.trim() || !guestInfo.email.trim() || !guestInfo.phone.trim()) {
+            toast.error("Please provide your name, email, and phone number");
             return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(guestInfo.email)) {
+            toast.error("Please enter a valid email address");
+            return;
+        }
+
+        // Validate delivery address if delivery type
+        if (deliveryType === "delivery") {
+            if (!deliveryAddress.street.trim() || !deliveryAddress.city.trim() || !deliveryAddress.state.trim() || !deliveryAddress.zipCode.trim()) {
+                toast.error("Please provide a complete delivery address");
+                return;
+            }
         }
 
         // Validate pickup fields
@@ -80,6 +130,7 @@ export default function CheckoutPage() {
 
         setIsLoading(true);
         try {
+            const isGuestOrder = !session?.user;
             const orderInput = {
                 items: items.map((item) => ({
                     productId: item.productId,
@@ -88,10 +139,18 @@ export default function CheckoutPage() {
                 totalAmount: total,
                 paymentMethod,
                 deliveryType,
-                deliveryAddress: deliveryType === "delivery" ? deliveryAddress : null,
+                deliveryAddress: deliveryType === "delivery" ? {
+                    ...deliveryAddress,
+                    phone: guestInfo.phone,
+                } : null,
                 pickupBranchId: deliveryType === "pickup" ? "branch-1" : null,
-                pickupName: deliveryType === "pickup" ? pickupInfo.name : undefined,
-                pickupPhone: deliveryType === "pickup" ? pickupInfo.phone : undefined,
+                pickupName: deliveryType === "pickup" ? (pickupInfo.name || guestInfo.name) : undefined,
+                pickupPhone: deliveryType === "pickup" ? (pickupInfo.phone || guestInfo.phone) : undefined,
+                // Guest order fields
+                guestEmail: isGuestOrder ? guestInfo.email : undefined,
+                guestName: isGuestOrder ? guestInfo.name : undefined,
+                guestPhone: isGuestOrder ? guestInfo.phone : undefined,
+                guestSessionId: isGuestOrder ? getGuestSessionId() : undefined,
             };
 
             const result = await createOrder(orderInput);
@@ -114,8 +173,81 @@ export default function CheckoutPage() {
         }
     };
 
+    // Show loading state while session is being verified
+    // Give extra time after OAuth redirects for session to be available
+    const [hasInitialized, setHasInitialized] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
+    
+    useEffect(() => {
+        // Check if session exists in localStorage immediately
+        if (typeof window !== "undefined") {
+            const storedSession = localStorage.getItem("userSession");
+            if (storedSession) {
+                // If session exists in storage, don't wait for context
+                setHasInitialized(true);
+                return;
+            }
+        }
+        
+        // Otherwise wait for session context to finish loading
+        if (!sessionLoading) {
+            // If we have a session in context, we're good
+            if (session?.user) {
+                setHasInitialized(true);
+                return;
+            }
+            
+            // If no session and we haven't retried too many times, wait a bit longer (for OAuth)
+            if (retryCount < 5) {
+                const timer = setTimeout(() => {
+                    setRetryCount(prev => prev + 1);
+                }, 500);
+                return () => clearTimeout(timer);
+            } else {
+                // After 5 retries (2.5 seconds), give up and show the page
+                // The redirect logic will handle sending to login if needed
+                setHasInitialized(true);
+            }
+        }
+    }, [sessionLoading, session, retryCount]);
+
+    if (sessionLoading && !hasInitialized) {
+        return (
+            <div className="min-h-screen bg-gray-50">
+                <Navbar />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF6B9D] mx-auto"></div>
+                        <p className="mt-4 text-gray-600">Loading checkout...</p>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
+
+    // Show empty cart message instead of returning null
     if (items.length === 0) {
-        return null;
+        return (
+            <div className="min-h-screen bg-gray-50">
+                <Navbar />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                    <div className="text-center">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                            <span className="text-4xl">🛒</span>
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
+                        <p className="text-gray-600 mb-6">Add some items to your cart to proceed to checkout.</p>
+                        <Link href="/shop">
+                            <Button className="bg-[#FF6B9D] hover:bg-[#FF4A7A] text-white">
+                                Continue Shopping
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
     }
 
     return (
@@ -127,34 +259,73 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Delivery Type Selection */}
+                        {/* Guest Contact Information (Required for all orders) */}
+                        <div className="bg-white rounded-lg p-6 shadow-sm">
+                            <h2 className="text-xl font-bold text-gray-900 mb-4">Contact Information</h2>
+                            <p className="text-sm text-gray-600 mb-4">
+                                {session?.user 
+                                    ? `Logged in as ${session.user.name || session.user.email}` 
+                                    : "Please provide your contact information to complete your order"}
+                            </p>
+                            {!session?.user && (
+                                <div className="space-y-4">
+                                    <Input
+                                        placeholder="Full Name *"
+                                        value={guestInfo.name}
+                                        onChange={(e) =>
+                                            setGuestInfo({ ...guestInfo, name: e.target.value })
+                                        }
+                                        required
+                                    />
+                                    <Input
+                                        type="email"
+                                        placeholder="Email Address *"
+                                        value={guestInfo.email}
+                                        onChange={(e) =>
+                                            setGuestInfo({ ...guestInfo, email: e.target.value })
+                                        }
+                                        required
+                                    />
+                                    <Input
+                                        type="tel"
+                                        placeholder="Phone Number *"
+                                        value={guestInfo.phone}
+                                        onChange={(e) =>
+                                            setGuestInfo({ ...guestInfo, phone: e.target.value })
+                                        }
+                                        required
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Delivery Type Display (Read-only) */}
                         <div className="bg-white rounded-lg p-6 shadow-sm">
                             <h2 className="text-xl font-bold text-gray-900 mb-4">Delivery Method</h2>
-                            <div className="grid grid-cols-2 gap-4">
-                                <button
-                                    onClick={() => setDeliveryType("delivery")}
-                                    className={`p-4 border-2 rounded-lg transition-all ${
-                                        deliveryType === "delivery"
-                                            ? "border-pink-600 bg-pink-50"
-                                            : "border-gray-200 hover:border-gray-300"
-                                    }`}
+                            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg border-2 border-pink-200">
+                                {deliveryType === "delivery" ? (
+                                    <>
+                                        <FiTruck className="w-8 h-8 text-pink-600" />
+                                        <div>
+                                            <p className="font-bold text-gray-900">Home Delivery</p>
+                                            <p className="text-sm text-gray-600">Free on orders Rs. 2000+</p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <FiMapPin className="w-8 h-8 text-amber-600" />
+                                        <div>
+                                            <p className="font-bold text-gray-900">Store Pickup</p>
+                                            <p className="text-sm text-gray-600">Ready in 30 minutes</p>
+                                        </div>
+                                    </>
+                                )}
+                                <Link 
+                                    href="/order-type" 
+                                    className="ml-auto text-sm text-pink-600 hover:text-pink-700 font-semibold underline"
                                 >
-                                    <FiTruck className="w-6 h-6 mx-auto mb-2 text-pink-600" />
-                                    <p className="font-semibold">Home Delivery</p>
-                                    <p className="text-sm text-gray-600">Free on orders Rs. 2000+</p>
-                                </button>
-                                <button
-                                    onClick={() => setDeliveryType("pickup")}
-                                    className={`p-4 border-2 rounded-lg transition-all ${
-                                        deliveryType === "pickup"
-                                            ? "border-pink-600 bg-pink-50"
-                                            : "border-gray-200 hover:border-gray-300"
-                                    }`}
-                                >
-                                    <FiMapPin className="w-6 h-6 mx-auto mb-2 text-pink-600" />
-                                    <p className="font-semibold">Store Pickup</p>
-                                    <p className="text-sm text-gray-600">Ready in 30 minutes</p>
-                                </button>
+                                    Change
+                                </Link>
                             </div>
                         </div>
 
@@ -186,22 +357,13 @@ export default function CheckoutPage() {
                                             }
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <Input
-                                            placeholder="ZIP Code"
-                                            value={deliveryAddress.zipCode}
-                                            onChange={(e) =>
-                                                setDeliveryAddress({ ...deliveryAddress, zipCode: e.target.value })
-                                            }
-                                        />
-                                        <Input
-                                            placeholder="Phone Number"
-                                            value={deliveryAddress.phone}
-                                            onChange={(e) =>
-                                                setDeliveryAddress({ ...deliveryAddress, phone: e.target.value })
-                                            }
-                                        />
-                                    </div>
+                                    <Input
+                                        placeholder="ZIP Code"
+                                        value={deliveryAddress.zipCode}
+                                        onChange={(e) =>
+                                            setDeliveryAddress({ ...deliveryAddress, zipCode: e.target.value })
+                                        }
+                                    />
                                 </div>
                             </div>
                         )}
@@ -285,8 +447,7 @@ export default function CheckoutPage() {
                                             {item.product?.name || "Product"} x {item.quantity}
                                         </span>
                                         <span className="font-semibold">
-                                            $
-                                            {(
+                                            Rs. {(
                                                 parseFloat(item.product?.price || "0") * item.quantity
                                             ).toFixed(2)}
                                         </span>
@@ -315,30 +476,11 @@ export default function CheckoutPage() {
 
                             <Button
                                 onClick={handlePlaceOrder}
-                                disabled={isLoading || !session?.user}
+                                disabled={isLoading}
                                 className="w-full mt-6 bg-[#FF6B9D] hover:bg-[#FF4A7A] text-white py-6 text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed rounded-full"
                             >
-                                {isLoading ? "Processing..." : session?.user ? "Place Order" : "Please Log In"}
+                                {isLoading ? "Processing..." : "Place Order"}
                             </Button>
-                            {!session?.user && (
-                                <p className="text-sm text-gray-600 mt-4 text-center">
-                                    Please{" "}
-                                    <a 
-                                        href="/login" 
-                                        className="text-pink-600 hover:underline font-semibold"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            if (typeof window !== "undefined") {
-                                                localStorage.setItem("redirectAfterLogin", "/checkout");
-                                            }
-                                            router.push("/login");
-                                        }}
-                                    >
-                                        log in
-                                    </a>{" "}
-                                    to place an order
-                                </p>
-                            )}
                         </div>
                     </div>
                 </div>

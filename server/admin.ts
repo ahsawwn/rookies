@@ -3,6 +3,7 @@
 import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { db } from "@/db/drizzle";
 import { admin, adminSession } from "@/db/schema";
 import { compare, hash } from "bcryptjs";
@@ -20,13 +21,25 @@ function generateId(): string {
     return randomBytes(16).toString("hex");
 }
 
+// Validation schemas
+const adminLoginSchema = z.object({
+    email: z.string().email("Invalid email address").max(255, "Email too long"),
+    password: z.string().min(8, "Password must be at least 8 characters").max(100, "Password too long"),
+});
+
 /**
  * Admin login
  */
 export async function adminLogin(email: string, password: string) {
     try {
+        // Validate input
+        const validated = adminLoginSchema.parse({ email, password });
+        
+        // Sanitize email (lowercase, trim)
+        const sanitizedEmail = validated.email.toLowerCase().trim();
+
         const adminRecord = await db.query.admin.findFirst({
-            where: eq(admin.email, email),
+            where: eq(admin.email, sanitizedEmail),
         });
 
         if (!adminRecord) {
@@ -43,7 +56,7 @@ export async function adminLogin(email: string, password: string) {
             };
         }
 
-        const passwordMatch = await compare(password, adminRecord.password);
+        const passwordMatch = await compare(validated.password, adminRecord.password);
 
         if (!passwordMatch) {
             return {

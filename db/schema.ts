@@ -169,8 +169,7 @@ export const otp = pgTable("otp", {
 export const order = pgTable("order", {
     id: text("id").primaryKey(),
     userId: text("user_id")
-        .notNull()
-        .references(() => user.id, { onDelete: "cascade" }),
+        .references(() => user.id, { onDelete: "cascade" }), // Nullable for guest orders
     orderNumber: text("order_number").notNull().unique(),
     totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
     status: orderStatus("status").default("pending").notNull(),
@@ -182,6 +181,12 @@ export const order = pgTable("order", {
     pickupVerificationCode: text("pickup_verification_code"), // 6-digit code for pickup validation
     pickupName: text("pickup_name"), // Name for pickup order
     pickupPhone: text("pickup_phone"), // Phone number for pickup order
+    // Guest order fields
+    guestSessionId: text("guest_session_id"), // Session ID for guest orders
+    guestIpAddress: text("guest_ip_address"), // IP address for guest orders
+    guestEmail: text("guest_email"), // Email for guest orders
+    guestName: text("guest_name"), // Name for guest orders
+    guestPhone: text("guest_phone"), // Phone for guest orders
     createdAt: timestamp("created_at")
         .$defaultFn(() => /* @__PURE__ */ new Date())
         .notNull(),

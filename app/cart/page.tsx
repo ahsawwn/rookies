@@ -216,17 +216,8 @@ export default function CartPage() {
                             )}
 
                             <Link 
-                                href="/checkout" 
+                                href="/order-type" 
                                 className="block"
-                                onClick={(e) => {
-                                    // Check if user is logged in, if not, set redirect URL
-                                    const storedSession = typeof window !== "undefined" 
-                                        ? localStorage.getItem("userSession") 
-                                        : null;
-                                    if (!storedSession && typeof window !== "undefined") {
-                                        localStorage.setItem("redirectAfterLogin", "/checkout");
-                                    }
-                                }}
                             >
                                 <Button className="w-full bg-[#FF6B9D] hover:bg-[#FF4A7A] text-white py-6 text-lg font-bold">
                                     Proceed to Checkout

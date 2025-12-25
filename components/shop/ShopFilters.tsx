@@ -99,7 +99,7 @@ export function ShopFilters({
                         placeholder="Search products..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-pink-300"
+                        className="pl-10 pr-10 h-12 rounded-xl border-gray-200 focus:border-[#E91E63] focus:ring-[#E91E63]"
                     />
                     {searchQuery && (
                         <button
@@ -120,7 +120,7 @@ export function ShopFilters({
                             className={cn(
                                 "px-4 py-2 rounded-full font-medium text-sm transition-all duration-300",
                                 activeCategory === category.id
-                                    ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg"
+                                    ? "bg-[#E91E63] hover:bg-[#C2185B] text-white shadow-lg"
                                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                             )}
                         >
@@ -161,7 +161,7 @@ export function ShopFilters({
                                             onClick={() => handleSortChange(option.id)}
                                             className={cn(
                                                 "w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors",
-                                                activeSort === option.id && "bg-pink-50 text-pink-600"
+                                                activeSort === option.id && "bg-pink-50 text-[#E91E63] font-semibold"
                                             )}
                                         >
                                             {option.name}
@@ -226,7 +226,7 @@ export function ShopFilters({
                                     className={cn(
                                         "px-3 py-1.5 rounded-full text-xs font-medium",
                                         activeCategory === category.id
-                                            ? "bg-pink-600 text-white"
+                                            ? "bg-[#E91E63] text-white"
                                             : "bg-gray-100 text-gray-700"
                                     )}
                                 >

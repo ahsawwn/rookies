@@ -1,19 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { adminLogin } from "@/server/admin";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { FiMail, FiLock, FiLoader } from "react-icons/fi";
+import { FiMail, FiLock, FiLoader, FiShield } from "react-icons/fi";
 
 export function AdminLoginForm() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [isPasskeySupported, setIsPasskeySupported] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        // Check if WebAuthn/Passkey is supported
+        setIsPasskeySupported(
+            typeof window !== "undefined" &&
+            typeof PublicKeyCredential !== "undefined" &&
+            PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable !== undefined
+        );
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,6 +46,24 @@ export function AdminLoginForm() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handlePasskeyLogin = async () => {
+        if (!isPasskeySupported) {
+            toast.error("Passkey is not supported on this device");
+            return;
+        }
+
+        // Note: Full passkey implementation requires server-side API routes
+        // For now, show a message that this feature is coming soon
+        toast.info("Passkey authentication is coming soon! Please use email/password for now.");
+        
+        // TODO: Implement full WebAuthn flow with server-side credential storage
+        // This requires:
+        // 1. API routes for credential registration (/api/webauthn/register)
+        // 2. API routes for challenge generation (/api/webauthn/challenge)
+        // 3. API routes for credential verification (/api/webauthn/verify)
+        // 4. Database schema for storing WebAuthn credentials
     };
 
     return (
@@ -96,10 +125,38 @@ export function AdminLoginForm() {
                                 Logging in...
                             </>
                         ) : (
-                            "Login"
+                            "Login with Email"
                         )}
                     </Button>
                 </form>
+
+                {/* Passkey Login Option */}
+                {isPasskeySupported && (
+                    <>
+                        <div className="relative my-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t border-gray-300"></span>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-2 bg-white text-gray-500">Or</span>
+                            </div>
+                        </div>
+
+                        <Button
+                            type="button"
+                            onClick={handlePasskeyLogin}
+                            variant="outline"
+                            className="w-full border-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+                            disabled={isLoading}
+                        >
+                            <FiShield className="w-4 h-4 mr-2" />
+                            {isLoading ? "Authenticating..." : "Login with Passkey"}
+                        </Button>
+                        <p className="text-xs text-gray-500 text-center mt-2">
+                            Use your fingerprint, face ID, or device PIN
+                        </p>
+                    </>
+                )}
             </CardContent>
         </Card>
     );

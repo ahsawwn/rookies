@@ -10,8 +10,9 @@ export default async function LoginPage() {
     });
 
     if (session) {
-        // Check for redirect URL in search params (client-side will handle localStorage redirect)
-        redirect("/");
+        // Check for redirect URL in localStorage (handled client-side)
+        // Don't redirect server-side to allow client-side redirect handling
+        // The LoginForm component will handle the redirectAfterLogin from localStorage
     }
     return (
         <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-gradient-to-br from-pink-50 via-white to-rose-50 p-6 md:p-10 relative overflow-hidden">

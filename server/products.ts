@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and, or, like, desc, asc } from "drizzle-orm";
+import { eq, and, or, like, desc, asc, sql } from "drizzle-orm";
 import { db } from "@/db/drizzle";
 import { product } from "@/db/schema";
 
@@ -9,6 +9,8 @@ export interface ProductFilters {
     search?: string;
     sortBy?: "price-asc" | "price-desc" | "name-asc" | "name-desc" | "newest";
     featured?: boolean;
+    page?: number;
+    limit?: number;
 }
 
 /**
@@ -38,49 +40,65 @@ export async function getProducts(filters?: ProductFilters) {
             );
         }
 
-        let products = await db
-            .select()
+        // Pagination
+        const pageNum = filters?.page ? Math.max(1, Math.floor(filters.page)) : 1;
+        const limitNum = filters?.limit ? Math.max(1, Math.min(100, Math.floor(filters.limit))) : 50;
+        const offset = (pageNum - 1) * limitNum;
+
+        // Get total count for pagination
+        const [totalCountResult] = await db
+            .select({ count: sql<number>`count(*)` })
             .from(product)
             .where(and(...conditions));
 
-        // Sort products
+        const total = Number(totalCountResult?.count || 0);
+
+        // Build query with sorting
+        let orderByClause;
         if (filters?.sortBy) {
             switch (filters.sortBy) {
                 case "price-asc":
-                    products = products.sort((a, b) =>
-                        parseFloat(a.price) - parseFloat(b.price)
-                    );
+                    orderByClause = asc(sql`CAST(${product.price} AS DECIMAL)`);
                     break;
                 case "price-desc":
-                    products = products.sort((a, b) =>
-                        parseFloat(b.price) - parseFloat(a.price)
-                    );
+                    orderByClause = desc(sql`CAST(${product.price} AS DECIMAL)`);
                     break;
                 case "name-asc":
-                    products = products.sort((a, b) => a.name.localeCompare(b.name));
+                    orderByClause = asc(product.name);
                     break;
                 case "name-desc":
-                    products = products.sort((a, b) => b.name.localeCompare(a.name));
+                    orderByClause = desc(product.name);
                     break;
                 case "newest":
-                    products = products.sort(
-                        (a, b) =>
-                            new Date(b.createdAt).getTime() -
-                            new Date(a.createdAt).getTime()
-                    );
+                default:
+                    orderByClause = desc(product.createdAt);
                     break;
             }
         } else {
-            // Default: newest first
-            products = products.sort(
-                (a, b) =>
-                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            );
+            orderByClause = desc(product.createdAt);
         }
+
+        const products = await db
+            .select()
+            .from(product)
+            .where(and(...conditions))
+            .orderBy(orderByClause)
+            .limit(limitNum)
+            .offset(offset);
+
+        const totalPages = Math.ceil(total / limitNum);
 
         return {
             success: true,
             products,
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total,
+                totalPages,
+                hasNext: pageNum < totalPages,
+                hasPrev: pageNum > 1,
+            },
         };
     } catch (error) {
         console.error("Get products error:", error);
