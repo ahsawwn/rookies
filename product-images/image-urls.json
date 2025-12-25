@@ -1,0 +1,48 @@
+{
+  "cookies": {
+    "Nankhatai": "https://images.unsplash.com/photo-1599599810769-92c0f4b06141?w=800&h=800&fit=crop&q=80",
+    "Chocolate Chip Cookies": "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&h=800&fit=crop&q=80",
+    "Butter Cookies": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=800&h=800&fit=crop&q=80",
+    "Almond Cookies": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800&h=800&fit=crop&q=80",
+    "Oatmeal Raisin Cookies": "https://images.unsplash.com/photo-1615367423057-4b8b1af35c0a?w=800&h=800&fit=crop&q=80",
+    "Sugar Cookies": "https://images.unsplash.com/photo-1599599810769-92c0f4b06141?w=800&h=800&fit=crop&q=80"
+  },
+  "shakes": {
+    "Mango Shake": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=800&h=800&fit=crop&q=80",
+    "Chocolate Shake": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=800&h=800&fit=crop&q=80",
+    "Strawberry Shake": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=800&h=800&fit=crop&q=80",
+    "Vanilla Shake": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=800&h=800&fit=crop&q=80",
+    "Banana Shake": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=800&h=800&fit=crop&q=80",
+    "Oreo Shake": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=800&h=800&fit=crop&q=80"
+  },
+  "cupcakes": {
+    "Vanilla Cupcake": "https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=800&h=800&fit=crop&q=80",
+    "Chocolate Cupcake": "https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=800&h=800&fit=crop&q=80",
+    "Red Velvet Cupcake": "https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=800&h=800&fit=crop&q=80",
+    "Strawberry Cupcake": "https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=800&h=800&fit=crop&q=80",
+    "Lemon Cupcake": "https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=800&h=800&fit=crop&q=80"
+  },
+  "cakes": {
+    "Chocolate Cake (1kg)": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop&q=80",
+    "Vanilla Cake (1kg)": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop&q=80",
+    "Red Velvet Cake (1kg)": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop&q=80",
+    "Birthday Cake (1kg)": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop&q=80",
+    "Strawberry Cake (1kg)": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop&q=80",
+    "Coffee Cake (1kg)": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop&q=80"
+  },
+  "croissants": {
+    "Plain Croissant": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop&q=80",
+    "Chocolate Croissant": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop&q=80",
+    "Almond Croissant": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop&q=80",
+    "Ham & Cheese Croissant": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop&q=80"
+  },
+  "breads": {
+    "White Bread (Loaf)": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&h=800&fit=crop&q=80",
+    "Brown Bread (Loaf)": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&h=800&fit=crop&q=80",
+    "Naan (4 pieces)": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&h=800&fit=crop&q=80",
+    "Garlic Bread (Loaf)": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&h=800&fit=crop&q=80",
+    "Multigrain Bread (Loaf)": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&h=800&fit=crop&q=80",
+    "Roti (10 pieces)": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&h=800&fit=crop&q=80"
+  }
+}
+

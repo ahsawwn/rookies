@@ -1,0 +1,12 @@
+# Ignore downloaded images (they're large files)
+*.jpg
+*.jpeg
+*.png
+*.webp
+
+# Keep only the documentation files
+!README.md
+!IMAGE-SOURCES.md
+!PRODUCT-IMAGE-GUIDE.md
+!image-urls.json
+
