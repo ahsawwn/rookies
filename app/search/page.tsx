@@ -5,21 +5,22 @@ import Navbar from "@/components/users/Navbar";
 import Footer from "@/components/users/Footer";
 
 interface SearchPageProps {
-    searchParams: {
+    searchParams: Promise<{
         q?: string;
         category?: string;
         sortBy?: string;
         minPrice?: string;
         maxPrice?: string;
-    };
+    }>;
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-    const query = searchParams.q || "";
-    const category = searchParams.category || "all";
-    const sortBy = (searchParams.sortBy as any) || "newest";
-    const minPrice = searchParams.minPrice ? parseFloat(searchParams.minPrice) : undefined;
-    const maxPrice = searchParams.maxPrice ? parseFloat(searchParams.maxPrice) : undefined;
+    const params = await searchParams;
+    const query = params.q || "";
+    const category = params.category || "all";
+    const sortBy = (params.sortBy as any) || "newest";
+    const minPrice = params.minPrice ? parseFloat(params.minPrice) : undefined;
+    const maxPrice = params.maxPrice ? parseFloat(params.maxPrice) : undefined;
 
     let products: any[] = [];
 

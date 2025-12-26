@@ -3,17 +3,18 @@ import { ShopPageClient } from "@/components/shop/ShopPageClient";
 import Navbar from "@/components/users/Navbar";
 
 interface ShopPageProps {
-    searchParams: {
+    searchParams: Promise<{
         category?: string;
         search?: string;
         sortBy?: string;
-    };
+    }>;
 }
 
 export default async function ShopPage({ searchParams }: ShopPageProps) {
-    const category = searchParams.category || "all";
-    const search = searchParams.search || "";
-    const sortBy = (searchParams.sortBy as any) || "newest";
+    const params = await searchParams;
+    const category = params.category || "all";
+    const search = params.search || "";
+    const sortBy = (params.sortBy as any) || "newest";
 
     const result = await getProducts({
         category: category !== "all" ? category : undefined,
