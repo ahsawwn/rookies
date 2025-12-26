@@ -6,11 +6,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default async function OrdersPage({
     searchParams,
 }: {
-    searchParams: { status?: string; page?: string; search?: string };
+    searchParams: Promise<{ status?: string; page?: string; search?: string }>;
 }) {
-    const status = searchParams.status || "all";
-    const page = parseInt(searchParams.page || "1");
-    const search = searchParams.search || "";
+    const params = await searchParams;
+    const status = params.status || "all";
+    const page = parseInt(params.page || "1");
+    const search = params.search || "";
 
     const ordersResult = await getAllOrders(page, 20);
     const orders = ordersResult.success ? ordersResult.orders : [];
