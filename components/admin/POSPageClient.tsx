@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AdminCard } from "./Card";
 import { AdminButton } from "./Button";
-import { FiX, FiMinus, FiPlus, FiPercent, FiSearch } from "react-icons/fi";
+import { ReceiptPrinter } from "./ReceiptPrinter";
+import { FiX, FiMinus, FiPlus, FiPercent, FiSearch, FiPrinter } from "react-icons/fi";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface CartItem {
     product: any;
@@ -21,6 +23,18 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
     const [paymentMethod, setPaymentMethod] = useState("cash");
     const [selectedCategory, setSelectedCategory] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const [customerName, setCustomerName] = useState("");
+    const [customerPhone, setCustomerPhone] = useState("");
+    const [customerEmail, setCustomerEmail] = useState("");
+    const [notes, setNotes] = useState("");
+
+    // Debug: Log products on mount
+    useEffect(() => {
+        console.log("[POSPageClient] Initial products:", initialProducts?.length || 0);
+        if (initialProducts?.length === 0) {
+            console.warn("[POSPageClient] No products received!");
+        }
+    }, [initialProducts]);
 
     // Group products by category
     const productsByCategory = useMemo(() => {
@@ -99,21 +113,64 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
         setCart((prev) => prev.filter((item) => item.product.id !== productId));
     };
 
-    const processPayment = () => {
-        // Handle payment processing
-        alert("Payment processed!");
-        setCart([]);
-        setDiscount(0);
+    const [saleNumber, setSaleNumber] = useState<string>("");
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const processPayment = async () => {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'POSPageClient.tsx:115',message:'processPayment called',data:{cartLength:cart.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+        // #endregion
+        
+        if (cart.length === 0) {
+            toast.error("Cart is empty");
+            return;
+        }
+
+        setIsProcessing(true);
+        try {
+            // Generate sale number
+            const newSaleNumber = `SALE-${Date.now()}`;
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'POSPageClient.tsx:127',message:'Setting saleNumber',data:{newSaleNumber},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+            // #endregion
+            
+            setSaleNumber(newSaleNumber);
+
+            // TODO: Save sale to database
+            // For now, just show success
+            toast.success(`Payment processed! Sale #${newSaleNumber}. Receipt downloading...`);
+            
+            // Clear cart after a delay to allow receipt PDF generation and download
+            // Increased delay to ensure PDF generation completes
+            setTimeout(() => {
+                setCart([]);
+                setDiscount(0);
+                setCustomerName("");
+                setCustomerPhone("");
+                setCustomerEmail("");
+                setNotes("");
+                // Keep saleNumber for a bit longer so receipt can be regenerated if needed
+                setTimeout(() => {
+                    setSaleNumber("");
+                }, 3000);
+            }, 5000);
+        } catch (error) {
+            console.error("Payment processing error:", error);
+            toast.error("Failed to process payment");
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Point of Sale</h1>
-                <p className="text-gray-600 mt-1">Process sales and manage transactions</p>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Point of Sale</h1>
+                <p className="text-gray-600 mt-1 text-sm md:text-base">Process sales and manage transactions</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                 {/* Products Grid */}
                 <div className="lg:col-span-2 space-y-4">
                     {/* Search and Category Filter */}
@@ -132,9 +189,9 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                             <div className="flex gap-2 overflow-x-auto pb-2">
                                 <button
                                     onClick={() => setSelectedCategory("all")}
-                                    className={`px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all ${
+                                    className={`px-3 md:px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all text-sm md:text-base ${
                                         selectedCategory === "all"
-                                            ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg"
+                                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg"
                                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                     }`}
                                 >
@@ -144,11 +201,11 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                                     <button
                                         key={category}
                                         onClick={() => setSelectedCategory(category)}
-                                        className={`px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all ${
-                                            selectedCategory === category
-                                                ? "bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg"
-                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                        }`}
+                                    className={`px-3 md:px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all text-sm md:text-base ${
+                                        selectedCategory === category
+                                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg"
+                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    }`}
                                     >
                                         {category.charAt(0).toUpperCase() + category.slice(1)} ({productsByCategory[category]?.length || 0})
                                     </button>
@@ -158,14 +215,14 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                     </AdminCard>
 
                     {/* Products Grid */}
-                    <AdminCard header={<h2 className="text-lg font-semibold">Products ({filteredProducts.length})</h2>}>
-                        <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 max-h-[600px] overflow-y-auto">
+                    <AdminCard header={<h2 className="text-base md:text-lg font-semibold">Products ({filteredProducts.length})</h2>}>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-3 max-h-[400px] md:max-h-[600px] overflow-y-auto">
                             {filteredProducts.length > 0 ? (
                                 filteredProducts.map((product) => (
                                     <div
                                         key={product.id}
                                         onClick={() => addToCart(product)}
-                                        className="p-2 border border-gray-200 rounded-lg hover:border-pink-500 hover:shadow-md cursor-pointer transition-all bg-white group"
+                                        className="p-1 md:p-2 border border-gray-200 rounded-lg hover:border-purple-500 hover:shadow-md cursor-pointer transition-all bg-white group"
                                     >
                                         <div className="relative aspect-square bg-gray-100 rounded-md mb-2 overflow-hidden">
                                             <Image
@@ -176,15 +233,20 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                                             />
                                         </div>
                                         <p className="font-medium text-xs line-clamp-2 mb-1 text-gray-900">{product.name}</p>
-                                        <p className="text-pink-600 font-bold text-sm">{formatCurrency(product.price)}</p>
+                                        <p className="text-purple-600 font-bold text-xs md:text-sm">{formatCurrency(product.price)}</p>
                                         {product.stock !== undefined && product.stock < 10 && (
                                             <p className="text-xs text-amber-600 mt-0.5">Stock: {product.stock}</p>
                                         )}
                                     </div>
                                 ))
+                            ) : initialProducts.length === 0 ? (
+                                <div className="col-span-full text-center py-12">
+                                    <p className="text-gray-500 mb-2 font-medium">No products found in database</p>
+                                    <p className="text-sm text-gray-400">Please add products from the Products page first</p>
+                                </div>
                             ) : (
                                 <p className="col-span-full text-center text-gray-500 py-12">
-                                    No products found
+                                    No products match your filters. Try changing category or search.
                                 </p>
                             )}
                         </div>
@@ -192,16 +254,16 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                 </div>
 
                 {/* Cart */}
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                     <AdminCard
                         header={
                             <div className="flex items-center justify-between">
-                                <h2 className="text-lg font-semibold">Cart</h2>
-                                <span className="text-sm text-gray-600">{cart.length} items</span>
+                                <h2 className="text-base md:text-lg font-semibold">Cart</h2>
+                                <span className="text-xs md:text-sm text-gray-600">{cart.length} items</span>
                             </div>
                         }
                     >
-                        <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                        <div className="space-y-2 md:space-y-3 max-h-[300px] md:max-h-[400px] overflow-y-auto">
                             {cart.length > 0 ? (
                                 cart.map((item) => (
                                     <div key={item.product.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -272,9 +334,9 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                                     <span>Tax (10%)</span>
                                     <span>{formatCurrency(tax)}</span>
                                 </div>
-                                <div className="flex items-center justify-between font-bold text-lg pt-2 border-t border-gray-200">
+                                <div className="flex items-center justify-between font-bold text-base md:text-lg pt-2 border-t border-gray-200">
                                     <span>Total</span>
-                                    <span className="text-pink-600">{formatCurrency(total)}</span>
+                                    <span className="text-purple-600">{formatCurrency(total)}</span>
                                 </div>
                                 <div className="space-y-2 pt-2">
                                     <select
@@ -286,13 +348,29 @@ export function POSPageClient({ initialProducts }: POSPageClientProps) {
                                         <option value="card">Card</option>
                                         <option value="digital">Digital Wallet</option>
                                     </select>
-                                    <AdminButton
-                                        variant="primary"
-                                        onClick={processPayment}
-                                        className="w-full"
-                                    >
-                                        Process Payment
-                                    </AdminButton>
+                                    <div className="space-y-2">
+                                        <AdminButton
+                                            variant="primary"
+                                            onClick={processPayment}
+                                            disabled={isProcessing || cart.length === 0}
+                                            className="w-full"
+                                        >
+                                            {isProcessing ? "Processing..." : "Process Payment"}
+                                        </AdminButton>
+                                        {saleNumber && (
+                                            <ReceiptPrinter
+                                                items={cart}
+                                                subtotal={subtotal}
+                                                discount={discount}
+                                                discountAmount={discountAmount}
+                                                tax={tax}
+                                                total={total}
+                                                paymentMethod={paymentMethod}
+                                                saleNumber={saleNumber}
+                                                autoDownload={true}
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}

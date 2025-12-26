@@ -104,10 +104,10 @@ const Navbar = () => {
 
                         {/* Center: Logo */}
                         <Link href="/" className="flex items-center gap-2 absolute left-1/2 transform -translate-x-1/2">
-                            <div className="w-10 h-10 bg-[#E91E63] rounded-lg flex items-center justify-center shadow-sm">
+                            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
                                 <span className="text-white font-bold text-xl">R</span>
                             </div>
-                            <span className="text-2xl font-bold text-black tracking-tight hidden sm:block">ROOKIES</span>
+                            <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent tracking-tight hidden sm:block">ROOKIES</span>
                         </Link>
 
                         {/* Right: Cart & Profile */}
@@ -120,7 +120,7 @@ const Navbar = () => {
                             >
                                 <FiShoppingCart className="w-6 h-6 text-black" />
                                 {cartCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-[#E91E63] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
+                                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
                                         {cartCount > 9 ? '9+' : cartCount}
                                     </span>
                                 )}
@@ -142,7 +142,7 @@ const Navbar = () => {
                                             className="rounded-full"
                                         />
                                     ) : (
-                                        <div className="w-6 h-6 rounded-full bg-[#E91E63] flex items-center justify-center">
+                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
                                             <span className="text-white text-xs font-bold">
                                                 {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
                                             </span>
@@ -152,7 +152,7 @@ const Navbar = () => {
                             ) : (
                                 <Link
                                     href="/login"
-                                    className="px-4 py-2 rounded-full bg-[#E91E63] text-white text-sm font-medium hover:bg-[#C2185B] transition-colors"
+                                    className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-medium hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl"
                                 >
                                     Sign in
                                 </Link>

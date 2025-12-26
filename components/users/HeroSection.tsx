@@ -1,11 +1,18 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { FiArrowRight } from 'react-icons/fi';
 import { getFeaturedProducts } from '@/server/products';
+
+// Dynamically import Sprinkles with SSR disabled to prevent hydration mismatch
+const Sprinkles = dynamic(() => import('./Sprinkles'), { 
+    ssr: false,
+    loading: () => null
+});
 
 export default function HeroSection() {
     const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
@@ -31,7 +38,7 @@ export default function HeroSection() {
     }, [featuredProducts.length]);
 
     return (
-        <section className="relative w-full bg-gradient-to-br from-pink-100 via-rose-50 via-amber-50 to-pink-200 overflow-hidden min-h-[90vh] flex items-center">
+        <section className="relative w-full bg-gradient-to-br from-purple-50 via-indigo-50 via-purple-50 to-indigo-100 overflow-hidden min-h-[90vh] flex items-center">
             {/* Animated Background Elements */}
             <div className="absolute inset-0 overflow-hidden">
                 {/* Floating Biscuits/Cookies */}
@@ -52,30 +59,8 @@ export default function HeroSection() {
                     </div>
                 ))}
                 
-                {/* Animated Sprinkles/Stars */}
-                {[...Array(20)].map((_, i) => {
-                    // Use deterministic values based on index to avoid hydration mismatch
-                    // Simple hash function to generate pseudo-random but consistent values
-                    const seed = i * 137.508; // Golden angle approximation
-                    const left = ((Math.sin(seed) * 0.5 + 0.5) * 100) % 100;
-                    const top = ((Math.cos(seed * 0.7) * 0.5 + 0.5) * 100) % 100;
-                    const delay = ((Math.sin(seed * 1.3) * 0.5 + 0.5) * 2);
-                    const duration = 2 + ((Math.cos(seed * 0.9) * 0.5 + 0.5) * 2);
-                    
-                    return (
-                        <div
-                            key={`sprinkle-${i}`}
-                            className="absolute w-2 h-2 rounded-full animate-twinkle"
-                            style={{
-                                left: `${left}%`,
-                                top: `${top}%`,
-                                backgroundColor: ['#FF6B9D', '#FFB6C1', '#FFD700', '#FFA500', '#FF69B4'][i % 5],
-                                animationDelay: `${delay}s`,
-                                animationDuration: `${duration}s`,
-                            }}
-                        />
-                    );
-                })}
+                {/* Animated Sprinkles/Stars - Client-only to avoid hydration mismatch */}
+                <Sprinkles />
             </div>
 
             {/* Gradient Overlay */}
@@ -86,14 +71,14 @@ export default function HeroSection() {
                     {/* Left: Content */}
                     <div className="text-center lg:text-left relative z-10">
                         {/* Badge */}
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-pink-200 mb-6 animate-fade-in">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-purple-200 mb-6 animate-fade-in">
                             <span className="text-2xl animate-bounce">🍪</span>
-                            <span className="text-sm font-bold text-pink-700">Fresh Baked Daily</span>
+                            <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Fresh Baked Daily</span>
                         </div>
 
                         {/* Headline */}
                         <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black mb-6 leading-tight animate-slide-up">
-                            <span className="block bg-gradient-to-r from-pink-600 via-rose-600 to-amber-600 bg-clip-text text-transparent">
+                            <span className="block bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                                 Freshly Baked
                             </span>
                             <span className="block text-[#1a1a1a] mt-2">Happiness</span>
@@ -101,7 +86,7 @@ export default function HeroSection() {
 
                         {/* Weekly Rotating Flavors */}
                         <div className="mb-6 animate-slide-up-delay">
-                            <p className="text-sm font-bold text-pink-700 uppercase tracking-wider mb-2">
+                            <p className="text-sm font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent uppercase tracking-wider mb-2">
                                 This Week's Special
                             </p>
                             <p className="text-xl sm:text-2xl font-bold text-gray-800">
@@ -120,7 +105,7 @@ export default function HeroSection() {
                             <Link href="/order-type" className="w-full sm:w-auto">
                                 <Button 
                                     size="lg" 
-                                    className="w-full sm:w-auto bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white px-8 sm:px-10 py-6 sm:py-7 text-lg sm:text-xl font-bold rounded-full shadow-2xl hover:shadow-pink-500/50 transition-all transform hover:scale-105"
+                                    className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-8 sm:px-10 py-6 sm:py-7 text-lg sm:text-xl font-bold rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all transform hover:scale-105"
                                 >
                                     Order Now
                                     <FiArrowRight className="ml-2 w-5 h-5 sm:w-6 sm:h-6" />
@@ -130,7 +115,7 @@ export default function HeroSection() {
                                 <Button 
                                     variant="outline" 
                                     size="lg"
-                                    className="w-full sm:w-auto border-3 border-gray-800 bg-white/80 backdrop-blur-sm text-gray-800 hover:bg-gray-800 hover:text-white px-8 sm:px-10 py-6 sm:py-7 text-lg sm:text-xl font-bold rounded-full transition-all shadow-lg"
+                                    className="w-full sm:w-auto border-2 border-purple-600 bg-white/80 backdrop-blur-sm text-purple-600 hover:bg-purple-600 hover:text-white px-8 sm:px-10 py-6 sm:py-7 text-lg sm:text-xl font-bold rounded-full transition-all shadow-lg"
                                 >
                                     View Menu
                                 </Button>
@@ -139,16 +124,16 @@ export default function HeroSection() {
 
                         {/* Stats */}
                         <div className="mt-8 sm:mt-12 flex flex-wrap gap-6 sm:gap-8 justify-center lg:justify-start animate-fade-in-delay">
-                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg">
-                                <div className="text-4xl font-black bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">100+</div>
+                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-purple-100">
+                                <div className="text-4xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">100+</div>
                                 <div className="text-sm font-semibold text-gray-700">Happy Customers</div>
                             </div>
-                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg">
+                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-purple-100">
                                 <div className="text-4xl font-black bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">50+</div>
                                 <div className="text-sm font-semibold text-gray-700">Products</div>
                             </div>
-                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg">
-                                <div className="text-4xl font-black bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">Fresh</div>
+                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-purple-100">
+                                <div className="text-4xl font-black bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">Fresh</div>
                                 <div className="text-sm font-semibold text-gray-700">Daily Baking</div>
                             </div>
                         </div>
@@ -156,7 +141,7 @@ export default function HeroSection() {
 
                     {/* Right: Product Carousel */}
                     <div className="relative hidden lg:block">
-                        <div className="relative w-full aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-pink-100 to-rose-200">
+                        <div className="relative w-full aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-purple-100 to-indigo-200 border-2 border-purple-200">
                             {featuredProducts.length > 0 ? (
                                 <>
                                     {featuredProducts.map((product, index) => (
@@ -205,7 +190,7 @@ export default function HeroSection() {
 
                     {/* Mobile: Product Carousel */}
                     <div className="lg:hidden flex justify-center mt-8">
-                        <div className="relative w-full max-w-sm aspect-square rounded-2xl overflow-hidden shadow-xl bg-gradient-to-br from-pink-100 to-rose-200">
+                        <div className="relative w-full max-w-sm aspect-square rounded-2xl overflow-hidden shadow-xl bg-gradient-to-br from-purple-100 to-indigo-200 border-2 border-purple-200">
                             {featuredProducts.length > 0 ? (
                                 <>
                                     {featuredProducts.map((product, index) => (

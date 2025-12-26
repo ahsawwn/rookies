@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -51,6 +51,14 @@ export function AdminProductsPageClient({ initialProducts }: AdminProductsPageCl
     const [productDialogOpen, setProductDialogOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [commandOpen, setCommandOpen] = useState(false);
+
+    // Debug: Log products on mount
+    useEffect(() => {
+        console.log("[AdminProductsPageClient] Initial products:", initialProducts?.length || 0);
+        if (initialProducts?.length === 0) {
+            console.warn("[AdminProductsPageClient] No products received! Check database and server logs.");
+        }
+    }, [initialProducts]);
 
     const categories = useMemo(() => {
         const cats = new Set(products.map(p => p.category));
@@ -301,8 +309,16 @@ export function AdminProductsPageClient({ initialProducts }: AdminProductsPageCl
                             <TableCell colSpan={7} className="text-center py-12">
                                 <div className="flex flex-col items-center gap-2">
                                     <FiSearch className="w-12 h-12 text-gray-400" />
-                                    <p className="text-gray-500 font-medium">No products found</p>
-                                    <p className="text-sm text-gray-400">Try adjusting your filters</p>
+                                    <p className="text-gray-500 font-medium">
+                                        {initialProducts.length === 0 
+                                            ? "No products in database" 
+                                            : "No products found"}
+                                    </p>
+                                    <p className="text-sm text-gray-400">
+                                        {initialProducts.length === 0 
+                                            ? "Add your first product using the button above" 
+                                            : "Try adjusting your filters"}
+                                    </p>
                                 </div>
                             </TableCell>
                         </TableRow>
@@ -480,6 +496,9 @@ export function AdminProductsPageClient({ initialProducts }: AdminProductsPageCl
             {/* Command Palette */}
             <Dialog open={commandOpen} onOpenChange={setCommandOpen}>
                 <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Search Products</DialogTitle>
+                    </DialogHeader>
                     <Command>
                         <CommandInput placeholder="Search products..." />
                         <CommandList>

@@ -53,16 +53,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     // Verify session with API (only when needed)
     const verifySession = useCallback(async (retryCount = 0) => {
         try {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SessionContext.tsx:54',message:'Verifying session',data:{retryCount},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H5'})}).catch(()=>{});
-            // #endregion
-            
             const sessionData = await authClient.getSession();
             const authSession = sessionData.data?.session || null;
-
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SessionContext.tsx:60',message:'Session data received',data:{hasSession:!!authSession,hasUser:!!(authSession && 'user' in authSession && authSession.user)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H5'})}).catch(()=>{});
-            // #endregion
 
             // Better-auth returns session with user property
             if (authSession && 'user' in authSession && authSession.user) {
@@ -80,16 +72,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
                 });
                 const userEmail = user?.email;
                 setIsAdmin(userEmail?.includes('admin') || false);
-                
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SessionContext.tsx:77',message:'Session stored successfully',data:{userId:user.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H5'})}).catch(()=>{});
-                // #endregion
             } else {
                 // If no session found and we haven't retried yet, retry after a delay (for OAuth callbacks)
                 if (retryCount < 3 && typeof window !== "undefined") {
-                    // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SessionContext.tsx:84',message:'No session found, retrying',data:{retryCount,willRetryIn:500 * (retryCount + 1)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H5'})}).catch(()=>{});
-                    // #endregion
                     setTimeout(() => {
                         verifySession(retryCount + 1);
                     }, 500 * (retryCount + 1)); // Exponential backoff: 500ms, 1000ms, 1500ms
@@ -111,9 +96,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
             if (retryCount === 0 || (retryCount >= 3 && typeof window !== "undefined")) {
                 setIsLoading(false);
                 setHasVerified(true);
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SessionContext.tsx:100',message:'Session verification complete',data:{sessionExists:!!session,isLoading:false,retryCount},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H5'})}).catch(()=>{});
-                // #endregion
             }
         }
     }, [session, loadFromStorage]);
@@ -132,16 +114,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
     // Initialize on mount
     useEffect(() => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SessionContext.tsx:105',message:'SessionContext initializing',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H5'})}).catch(()=>{});
-        // #endregion
-        
         // Load from localStorage immediately (synchronous)
         const hasStored = loadFromStorage();
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/9e60db85-81e9-4252-8847-88441cf72423',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SessionContext.tsx:110',message:'Session loaded from storage',data:{hasStored,sessionExists:!!session},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H5'})}).catch(()=>{});
-        // #endregion
         
         setIsLoading(false);
 

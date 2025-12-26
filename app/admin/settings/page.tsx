@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FiSave, FiLock, FiBell, FiStore, FiShield, FiAlertTriangle } from "react-icons/fi";
+import { FiSave, FiLock, FiBell, FiShoppingBag, FiShield, FiAlertTriangle, FiDroplet } from "react-icons/fi";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
@@ -37,6 +37,13 @@ export default function SettingsPage() {
         lowStockAlerts: true,
         newOrderAlerts: true,
         dailyReports: false,
+    });
+
+    const [themeSettings, setThemeSettings] = useState({
+        primaryColor: "#6366f1",
+        secondaryColor: "#8b5cf6",
+        accentColor: "#ec4899",
+        linkColor: "#6366f1",
     });
 
     const handleSaveGeneral = async () => {
@@ -88,11 +95,12 @@ export default function SettingsPage() {
             </div>
 
             <Tabs defaultValue="general" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="general">General</TabsTrigger>
-                    <TabsTrigger value="security">Security</TabsTrigger>
-                    <TabsTrigger value="notifications">Notifications</TabsTrigger>
-                    <TabsTrigger value="store">Store</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-5 bg-purple-50/50 p-1 rounded-lg">
+                    <TabsTrigger value="general" className="data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm">General</TabsTrigger>
+                    <TabsTrigger value="security" className="data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm">Security</TabsTrigger>
+                    <TabsTrigger value="notifications" className="data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm">Notifications</TabsTrigger>
+                    <TabsTrigger value="store" className="data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm">Store</TabsTrigger>
+                    <TabsTrigger value="theme" className="data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm">Theme</TabsTrigger>
                 </TabsList>
 
                 {/* General Settings */}
@@ -336,7 +344,7 @@ export default function SettingsPage() {
                     <Card>
                         <CardHeader>
                             <div className="flex items-center gap-2">
-                                <FiStore className="w-5 h-5 text-gray-600" />
+                                <FiShoppingBag className="w-5 h-5 text-gray-600" />
                                 <CardTitle>Store Information</CardTitle>
                             </div>
                             <CardDescription>
@@ -389,6 +397,158 @@ export default function SettingsPage() {
                             <Button onClick={handleSaveGeneral} disabled={loading}>
                                 <FiSave className="w-4 h-4 mr-2" />
                                 {loading ? "Saving..." : "Save Store Information"}
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Theme Settings */}
+                <TabsContent value="theme" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <FiDroplet className="w-5 h-5 text-purple-600" />
+                                <CardTitle>Theme Customization</CardTitle>
+                            </div>
+                            <CardDescription>
+                                Customize the color scheme and appearance of your website
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="primaryColor">Primary Color</Label>
+                                    <div className="flex gap-3">
+                                        <Input
+                                            id="primaryColor"
+                                            type="color"
+                                            value={themeSettings.primaryColor}
+                                            onChange={(e) => setThemeSettings({ ...themeSettings, primaryColor: e.target.value })}
+                                            className="w-20 h-10 cursor-pointer"
+                                        />
+                                        <Input
+                                            type="text"
+                                            value={themeSettings.primaryColor}
+                                            onChange={(e) => setThemeSettings({ ...themeSettings, primaryColor: e.target.value })}
+                                            placeholder="#6366f1"
+                                            className="flex-1"
+                                        />
+                                    </div>
+                                    <p className="text-sm text-gray-500">Main brand color used throughout the site</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="secondaryColor">Secondary Color</Label>
+                                    <div className="flex gap-3">
+                                        <Input
+                                            id="secondaryColor"
+                                            type="color"
+                                            value={themeSettings.secondaryColor}
+                                            onChange={(e) => setThemeSettings({ ...themeSettings, secondaryColor: e.target.value })}
+                                            className="w-20 h-10 cursor-pointer"
+                                        />
+                                        <Input
+                                            type="text"
+                                            value={themeSettings.secondaryColor}
+                                            onChange={(e) => setThemeSettings({ ...themeSettings, secondaryColor: e.target.value })}
+                                            placeholder="#8b5cf6"
+                                            className="flex-1"
+                                        />
+                                    </div>
+                                    <p className="text-sm text-gray-500">Secondary brand color for accents</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="accentColor">Accent Color</Label>
+                                    <div className="flex gap-3">
+                                        <Input
+                                            id="accentColor"
+                                            type="color"
+                                            value={themeSettings.accentColor}
+                                            onChange={(e) => setThemeSettings({ ...themeSettings, accentColor: e.target.value })}
+                                            className="w-20 h-10 cursor-pointer"
+                                        />
+                                        <Input
+                                            type="text"
+                                            value={themeSettings.accentColor}
+                                            onChange={(e) => setThemeSettings({ ...themeSettings, accentColor: e.target.value })}
+                                            placeholder="#ec4899"
+                                            className="flex-1"
+                                        />
+                                    </div>
+                                    <p className="text-sm text-gray-500">Accent color for highlights and CTAs</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="linkColor">Link Color</Label>
+                                    <div className="flex gap-3">
+                                        <Input
+                                            id="linkColor"
+                                            type="color"
+                                            value={themeSettings.linkColor}
+                                            onChange={(e) => setThemeSettings({ ...themeSettings, linkColor: e.target.value })}
+                                            className="w-20 h-10 cursor-pointer"
+                                        />
+                                        <Input
+                                            type="text"
+                                            value={themeSettings.linkColor}
+                                            onChange={(e) => setThemeSettings({ ...themeSettings, linkColor: e.target.value })}
+                                            placeholder="#6366f1"
+                                            className="flex-1"
+                                        />
+                                    </div>
+                                    <p className="text-sm text-gray-500">Color for all links and navigation elements</p>
+                                </div>
+                            </div>
+
+                            {/* Preview */}
+                            <div className="mt-6 p-6 bg-gray-50 rounded-xl border-2 border-purple-100">
+                                <h3 className="font-semibold mb-4">Preview</h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3">
+                                        <div 
+                                            className="w-12 h-12 rounded-lg"
+                                            style={{ backgroundColor: themeSettings.primaryColor }}
+                                        ></div>
+                                        <div>
+                                            <p className="font-medium">Primary Color</p>
+                                            <p className="text-sm text-gray-600">{themeSettings.primaryColor}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div 
+                                            className="w-12 h-12 rounded-lg"
+                                            style={{ backgroundColor: themeSettings.secondaryColor }}
+                                        ></div>
+                                        <div>
+                                            <p className="font-medium">Secondary Color</p>
+                                            <p className="text-sm text-gray-600">{themeSettings.secondaryColor}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <a 
+                                            href="#" 
+                                            className="font-medium underline"
+                                            style={{ color: themeSettings.linkColor }}
+                                        >
+                                            Example Link
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Separator />
+
+                            <Button 
+                                onClick={() => {
+                                    // TODO: Save theme settings to database
+                                    toast.success("Theme settings saved successfully");
+                                }}
+                                disabled={loading}
+                                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                            >
+                                <FiSave className="w-4 h-4 mr-2" />
+                                {loading ? "Saving..." : "Save Theme Settings"}
                             </Button>
                         </CardContent>
                     </Card>

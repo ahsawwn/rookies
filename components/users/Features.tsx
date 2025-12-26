@@ -1,4 +1,7 @@
 // components/Features.tsx
+"use client";
+
+import { motion } from 'framer-motion';
 import { FiTruck, FiGift, FiHome, FiStar } from 'react-icons/fi';
 
 const Features = () => {
@@ -7,61 +10,77 @@ const Features = () => {
             icon: <FiTruck className="w-8 h-8" />,
             title: "Free Delivery",
             description: "On orders over Rs. 2000. Fast and reliable delivery to your doorstep.",
-            color: "bg-pink-100 text-pink-600"
+            gradient: "from-purple-500 to-indigo-500"
         },
         {
             icon: <FiGift className="w-8 h-8" />,
             title: "Gift Packages",
             description: "Perfect gifts for any occasion. Customizable cookie boxes available.",
-            color: "bg-amber-100 text-amber-600"
+            gradient: "from-amber-500 to-orange-500"
         },
         {
             icon: <FiHome className="w-8 h-8" />,
             title: "Curbside Pickup",
             description: "Order online and pick up curbside. No contact required.",
-            color: "bg-blue-100 text-blue-600"
+            gradient: "from-blue-500 to-cyan-500"
         },
         {
             icon: <FiStar className="w-8 h-8" />,
             title: "Rewards Program",
             description: "Earn points with every purchase. Redeem for free cookies!",
-            color: "bg-rose-100 text-rose-600"
+            gradient: "from-indigo-500 to-purple-500"
         }
     ];
 
     return (
-        <section className="w-full py-12 sm:py-16 lg:py-20 bg-white">
+        <section className="w-full py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-white via-purple-50/20 to-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-10 sm:mb-14">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                    className="text-center mb-10 sm:mb-14"
+                >
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-full mb-4">
+                        <span className="text-sm font-semibold text-purple-700 uppercase tracking-wider">
+                            Why Choose Us
+                        </span>
+                    </div>
                     <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                         Why Choose
-                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-600">
-              Crumbl Cookies
-            </span>
+                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600">
+                            ROOKIES
+                        </span>
                     </h2>
                     <p className="text-gray-600 max-w-2xl mx-auto text-lg">
                         We're committed to delivering the best cookie experience
                     </p>
-                </div>
+                </motion.div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
                     {features.map((feature, index) => (
-                        <div
+                        <motion.div
                             key={index}
-                            className="group bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 hover:border-pink-200 hover:shadow-xl transition-all duration-500 hover:-translate-y-2"
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: index * 0.1 }}
+                            whileHover={{ y: -8 }}
+                            className="group bg-white rounded-2xl p-6 sm:p-8 border-2 border-purple-100 hover:border-purple-300 hover:shadow-2xl transition-all duration-500"
                         >
-                            <div className={`w-16 h-16 ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                            <div className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 text-white shadow-lg`}>
                                 {feature.icon}
                             </div>
 
-                            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
+                            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 group-hover:text-purple-600 transition-colors">
                                 {feature.title}
                             </h3>
 
                             <p className="text-gray-600">
                                 {feature.description}
                             </p>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             </div>

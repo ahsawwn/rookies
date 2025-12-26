@@ -11,6 +11,7 @@ export interface ProductFilters {
     featured?: boolean;
     page?: number;
     limit?: number;
+    includeInactive?: boolean; // For admin pages
 }
 
 /**
@@ -18,9 +19,11 @@ export interface ProductFilters {
  */
 export async function getProducts(filters?: ProductFilters) {
     try {
-        let query = db.select().from(product).where(eq(product.isActive, true));
-
-        const conditions = [eq(product.isActive, true)];
+        // For admin pages, include inactive products if requested
+        const conditions: any[] = [];
+        if (!filters?.includeInactive) {
+            conditions.push(eq(product.isActive, true));
+        }
 
         if (filters?.category && filters.category !== "all") {
             conditions.push(eq(product.category, filters.category));
@@ -44,14 +47,6 @@ export async function getProducts(filters?: ProductFilters) {
         const pageNum = filters?.page ? Math.max(1, Math.floor(filters.page)) : 1;
         const limitNum = filters?.limit ? Math.max(1, Math.min(100, Math.floor(filters.limit))) : 50;
         const offset = (pageNum - 1) * limitNum;
-
-        // Get total count for pagination
-        const [totalCountResult] = await db
-            .select({ count: sql<number>`count(*)` })
-            .from(product)
-            .where(and(...conditions));
-
-        const total = Number(totalCountResult?.count || 0);
 
         // Build query with sorting
         let orderByClause;
@@ -78,13 +73,53 @@ export async function getProducts(filters?: ProductFilters) {
             orderByClause = desc(product.createdAt);
         }
 
-        const products = await db
-            .select()
-            .from(product)
-            .where(and(...conditions))
+        // Get total count for pagination
+        let totalCountQuery = db.select({ count: sql<number>`count(*)` }).from(product);
+        if (conditions.length > 0) {
+            totalCountQuery = totalCountQuery.where(and(...conditions));
+        }
+        const [totalCountResult] = await totalCountQuery;
+        const total = Number(totalCountResult?.count || 0);
+        
+        // Get products - Select only existing columns to avoid migration issues
+        let productsQuery = db.select({
+            id: product.id,
+            name: product.name,
+            slug: product.slug,
+            description: product.description,
+            shortDescription: product.shortDescription,
+            price: product.price,
+            originalPrice: product.originalPrice,
+            image: product.image,
+            images: product.images,
+            category: product.category,
+            calories: product.calories,
+            isActive: product.isActive,
+            isFeatured: product.isFeatured,
+            stock: product.stock,
+            metadata: product.metadata,
+            createdAt: product.createdAt,
+            updatedAt: product.updatedAt,
+            // Only include new columns if they exist (will be null if column doesn't exist)
+            weeklyStartDate: product.weeklyStartDate,
+            weeklyEndDate: product.weeklyEndDate,
+            isVisible: product.isVisible,
+        }).from(product);
+        if (conditions.length > 0) {
+            productsQuery = productsQuery.where(and(...conditions));
+        }
+        
+        const products = await productsQuery
             .orderBy(orderByClause)
             .limit(limitNum)
             .offset(offset);
+
+        // Log for debugging
+        console.log(`[getProducts] Found ${products.length} products with filters:`, {
+            includeInactive: filters?.includeInactive,
+            category: filters?.category,
+            limit: limitNum,
+        });
 
         const totalPages = Math.ceil(total / limitNum);
 
@@ -103,6 +138,55 @@ export async function getProducts(filters?: ProductFilters) {
     } catch (error) {
         console.error("Get products error:", error);
         const e = error as Error;
+        
+        // If error is about missing columns, try query without new columns
+        if (e.message?.includes('weekly_start_date') || e.message?.includes('weekly_end_date') || e.message?.includes('is_visible')) {
+            try {
+                // Retry with only existing columns
+                let fallbackQuery = db.select({
+                    id: product.id,
+                    name: product.name,
+                    slug: product.slug,
+                    description: product.description,
+                    shortDescription: product.shortDescription,
+                    price: product.price,
+                    originalPrice: product.originalPrice,
+                    image: product.image,
+                    images: product.images,
+                    category: product.category,
+                    calories: product.calories,
+                    isActive: product.isActive,
+                    isFeatured: product.isFeatured,
+                    stock: product.stock,
+                    metadata: product.metadata,
+                    createdAt: product.createdAt,
+                    updatedAt: product.updatedAt,
+                }).from(product);
+                if (conditions.length > 0) {
+                    fallbackQuery = fallbackQuery.where(and(...conditions));
+                }
+                const fallbackProducts = await fallbackQuery
+                    .orderBy(orderByClause)
+                    .limit(limitNum)
+                    .offset(offset);
+                
+                return {
+                    success: true,
+                    products: fallbackProducts,
+                    pagination: {
+                        page: pageNum,
+                        limit: limitNum,
+                        total: fallbackProducts.length,
+                        totalPages: 1,
+                        hasNext: false,
+                        hasPrev: false,
+                    },
+                };
+            } catch (fallbackError) {
+                // Fallback query failed, continue to return error
+            }
+        }
+        
         return {
             success: false,
             products: [],

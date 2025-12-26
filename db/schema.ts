@@ -246,6 +246,9 @@ export const product = pgTable("product", {
     isActive: boolean("is_active").default(true).notNull(),
     isFeatured: boolean("is_featured").default(false).notNull(),
     stock: integer("stock").default(0).notNull(),
+    weeklyStartDate: timestamp("weekly_start_date"), // For weekly products
+    weeklyEndDate: timestamp("weekly_end_date"), // For weekly products
+    isVisible: boolean("is_visible").default(true).notNull(), // Admin control for visibility
     metadata: jsonb("metadata"),
     createdAt: timestamp("created_at")
         .$defaultFn(() => /* @__PURE__ */ new Date())
@@ -489,6 +492,174 @@ export const cartItemRelations = relations(cartItem, ({ one }) => ({
 export type Cart = typeof cart.$inferSelect;
 export type CartItem = typeof cartItem.$inferSelect;
 
+// Weekly Products Table
+export const weeklyProduct = pgTable("weekly_product", {
+    id: text("id").primaryKey(),
+    productId: text("product_id")
+        .notNull()
+        .references(() => product.id, { onDelete: "cascade" }),
+    startDate: timestamp("start_date").notNull(),
+    endDate: timestamp("end_date").notNull(),
+    adminId: text("admin_id")
+        .notNull()
+        .references(() => admin.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+    updatedAt: timestamp("updated_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+});
+
+export const weeklyProductRelations = relations(weeklyProduct, ({ one }) => ({
+    product: one(product, {
+        fields: [weeklyProduct.productId],
+        references: [product.id],
+    }),
+    admin: one(admin, {
+        fields: [weeklyProduct.adminId],
+        references: [admin.id],
+    }),
+}));
+
+export type WeeklyProduct = typeof weeklyProduct.$inferSelect;
+
+// Testimonials Table
+export const testimonial = pgTable("testimonial", {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    role: text("role"),
+    comment: text("comment").notNull(),
+    rating: integer("rating").default(5).notNull(),
+    avatar: text("avatar"),
+    isApproved: boolean("is_approved").default(false).notNull(),
+    isFeatured: boolean("is_featured").default(false).notNull(),
+    adminId: text("admin_id")
+        .references(() => admin.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+    updatedAt: timestamp("updated_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+});
+
+export type Testimonial = typeof testimonial.$inferSelect;
+
+// Website Settings Table
+export const websiteSettings = pgTable("website_settings", {
+    id: text("id").primaryKey(),
+    key: text("key").unique().notNull(),
+    value: jsonb("value").notNull(),
+    description: text("description"),
+    adminId: text("admin_id")
+        .references(() => admin.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+    updatedAt: timestamp("updated_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+});
+
+export type WebsiteSettings = typeof websiteSettings.$inferSelect;
+
+// Widget Table
+export const widget = pgTable("widget", {
+    id: text("id").primaryKey(),
+    type: text("type").notNull(), // sales_chart, recent_orders, low_stock, quick_actions, custom_html, statistics
+    title: text("title").notNull(),
+    config: jsonb("config"), // Widget-specific configuration
+    position: integer("position").default(0).notNull(), // For drag-and-drop ordering
+    isVisible: boolean("is_visible").default(true).notNull(),
+    adminId: text("admin_id")
+        .references(() => admin.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+    updatedAt: timestamp("updated_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+});
+
+export type Widget = typeof widget.$inferSelect;
+
+// Payment Method Table
+export const paymentMethod = pgTable("payment_method", {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(), // jazzcash, easypaisa, nayapay, raast, cash
+    displayName: text("display_name").notNull(),
+    qrCode: text("qr_code"), // QR code image URL or data
+    accountNumber: text("account_number"),
+    accountName: text("account_name"),
+    isActive: boolean("is_active").default(true).notNull(),
+    adminId: text("admin_id")
+        .references(() => admin.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+    updatedAt: timestamp("updated_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+});
+
+export type PaymentMethod = typeof paymentMethod.$inferSelect;
+
+// Payment Screenshot Table
+export const paymentScreenshot = pgTable("payment_screenshot", {
+    id: text("id").primaryKey(),
+    orderId: text("order_id")
+        .notNull()
+        .references(() => order.id, { onDelete: "cascade" }),
+    paymentMethod: text("payment_method").notNull(),
+    screenshotUrl: text("screenshot_url").notNull(),
+    status: text("status").default("pending").notNull(), // pending, verified, rejected
+    verifiedBy: text("verified_by")
+        .references(() => admin.id, { onDelete: "set null" }),
+    verifiedAt: timestamp("verified_at"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+    updatedAt: timestamp("updated_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+});
+
+export const paymentScreenshotRelations = relations(paymentScreenshot, ({ one }) => ({
+    order: one(order, {
+        fields: [paymentScreenshot.orderId],
+        references: [order.id],
+    }),
+    verifier: one(admin, {
+        fields: [paymentScreenshot.verifiedBy],
+        references: [admin.id],
+    }),
+}));
+
+export type PaymentScreenshot = typeof paymentScreenshot.$inferSelect;
+
+// Theme Settings Table
+export const themeSettings = pgTable("theme_settings", {
+    id: text("id").primaryKey(),
+    primaryColor: text("primary_color").default("#6366f1").notNull(),
+    secondaryColor: text("secondary_color").default("#8b5cf6").notNull(),
+    accentColor: text("accent_color").default("#ec4899").notNull(),
+    linkColor: text("link_color").default("#6366f1").notNull(),
+    backgroundColor: text("background_color").default("#ffffff").notNull(),
+    textColor: text("text_color").default("#1a1a1a").notNull(),
+    adminId: text("admin_id")
+        .references(() => admin.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+    updatedAt: timestamp("updated_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+});
+
+export type ThemeSettings = typeof themeSettings.$inferSelect;
+
 export const schema = {
     user,
     session,
@@ -525,4 +696,13 @@ export const schema = {
     cartItemRelations,
     purchaseOrderRelations,
     purchaseOrderItemRelations,
+    weeklyProduct,
+    weeklyProductRelations,
+    testimonial,
+    websiteSettings,
+    widget,
+    paymentMethod,
+    paymentScreenshot,
+    paymentScreenshotRelations,
+    themeSettings,
 };

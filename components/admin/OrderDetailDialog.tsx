@@ -22,8 +22,15 @@ export function OrderDetailDialog({ open, onOpenChange, order, onStatusUpdate }:
 
     if (!order) return null;
 
-    const formatCurrency = (amount: string | number) => {
-        return `Rs. ${parseFloat(amount.toString()).toFixed(2)}`;
+    const formatCurrency = (amount: string | number | undefined | null) => {
+        if (amount === undefined || amount === null) {
+            return 'Rs. 0.00';
+        }
+        const numValue = typeof amount === 'string' ? parseFloat(amount) : amount;
+        if (isNaN(numValue)) {
+            return 'Rs. 0.00';
+        }
+        return `Rs. ${numValue.toFixed(2)}`;
     };
 
     const getStatusBadge = (status: string) => {
@@ -154,30 +161,30 @@ export function OrderDetailDialog({ open, onOpenChange, order, onStatusUpdate }:
                                     {order.items && order.items.length > 0 ? (
                                         order.items.map((item: any) => (
                                             <tr key={item.id} className="border-t">
-                                                <td className="p-3">
-                                                    <div className="flex items-center gap-3">
-                                                        {item.product?.image && (
-                                                            <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
-                                                                <Image
-                                                                    src={item.product.image}
-                                                                    alt={item.product.name}
-                                                                    fill
-                                                                    className="object-cover"
-                                                                />
+                                                    <td className="p-3">
+                                                        <div className="flex items-center gap-3">
+                                                            {item.product?.image && (
+                                                                <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+                                                                    <Image
+                                                                        src={item.product.image}
+                                                                        alt={item.product.name}
+                                                                        fill
+                                                                        className="object-cover"
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <p className="font-medium">{item.product?.name || "Unknown Product"}</p>
+                                                                <p className="text-sm text-gray-500">{formatCurrency(item.price)} each</p>
                                                             </div>
-                                                        )}
-                                                        <div>
-                                                            <p className="font-medium">{item.product?.name || "Unknown Product"}</p>
-                                                            <p className="text-sm text-gray-500">{formatCurrency(item.price)} each</p>
                                                         </div>
-                                                    </div>
-                                                </td>
-                                                <td className="p-3 text-center">{item.quantity}</td>
-                                                <td className="p-3 text-right">{formatCurrency(item.price)}</td>
-                                                <td className="p-3 text-right font-semibold">
-                                                    {formatCurrency(parseFloat(item.price) * item.quantity)}
-                                                </td>
-                                            </tr>
+                                                    </td>
+                                                    <td className="p-3 text-center">{item.quantity}</td>
+                                                    <td className="p-3 text-right">{formatCurrency(item.price)}</td>
+                                                    <td className="p-3 text-right font-semibold">
+                                                        {formatCurrency(item.price ? parseFloat(String(item.price)) * item.quantity : 0)}
+                                                    </td>
+                                                </tr>
                                         ))
                                     ) : (
                                         <tr>

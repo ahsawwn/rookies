@@ -10,6 +10,8 @@ import Navbar from "@/components/users/Navbar";
 import Footer from "@/components/users/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PaymentQRCode } from "@/components/checkout/PaymentQRCode";
+import { PaymentScreenshotUpload } from "@/components/checkout/PaymentScreenshotUpload";
 import { FiCreditCard, FiTruck, FiMapPin, FiCheck } from "react-icons/fi";
 import { toast } from "sonner";
 
@@ -53,6 +55,7 @@ export default function CheckoutPage() {
 
     // Payment form state
     const [paymentMethod, setPaymentMethod] = useState("cash");
+    const [paymentScreenshot, setPaymentScreenshot] = useState<string | null>(null);
 
     // Guest contact info (required for all orders)
     const [guestInfo, setGuestInfo] = useState({
@@ -413,10 +416,13 @@ export default function CheckoutPage() {
                                 {["cash", "jazzcash", "easypaisa", "nayapay", "raast"].map((method) => (
                                     <button
                                         key={method}
-                                        onClick={() => setPaymentMethod(method)}
+                                        onClick={() => {
+                                            setPaymentMethod(method);
+                                            setPaymentScreenshot(null);
+                                        }}
                                         className={`w-full p-4 border-2 rounded-lg text-left transition-all ${
                                             paymentMethod === method
-                                                ? "border-pink-600 bg-pink-50"
+                                                ? "border-purple-600 bg-purple-50"
                                                 : "border-gray-200 hover:border-gray-300"
                                         }`}
                                     >
@@ -426,13 +432,42 @@ export default function CheckoutPage() {
                                                 <span className="font-semibold capitalize">{method}</span>
                                             </div>
                                             {paymentMethod === method && (
-                                                <FiCheck className="w-5 h-5 text-pink-600" />
+                                                <FiCheck className="w-5 h-5 text-purple-600" />
                                             )}
                                         </div>
                                     </button>
                                 ))}
                             </div>
                         </div>
+
+                        {/* QR Code for Digital Payments */}
+                        {paymentMethod !== "cash" && (
+                            <div className="bg-white rounded-lg p-6 shadow-sm">
+                                <PaymentQRCode
+                                    paymentMethod={paymentMethod}
+                                    amount={total}
+                                    accountNumber="03001234567" // TODO: Get from payment method settings
+                                />
+                            </div>
+                        )}
+
+                        {/* Payment Screenshot Upload for Digital Payments */}
+                        {paymentMethod !== "cash" && (
+                            <div className="bg-white rounded-lg p-6 shadow-sm">
+                                <PaymentScreenshotUpload
+                                    onUpload={(file) => {
+                                        // Convert to base64 for preview
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                            setPaymentScreenshot(reader.result as string);
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }}
+                                    uploadedImage={paymentScreenshot}
+                                    onRemove={() => setPaymentScreenshot(null)}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Order Summary */}
@@ -476,11 +511,16 @@ export default function CheckoutPage() {
 
                             <Button
                                 onClick={handlePlaceOrder}
-                                disabled={isLoading}
-                                className="w-full mt-6 bg-[#FF6B9D] hover:bg-[#FF4A7A] text-white py-6 text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed rounded-full"
+                                disabled={isLoading || (paymentMethod !== "cash" && !paymentScreenshot)}
+                                className="w-full mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-6 text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed rounded-full"
                             >
                                 {isLoading ? "Processing..." : "Place Order"}
                             </Button>
+                            {paymentMethod !== "cash" && !paymentScreenshot && (
+                                <p className="text-sm text-amber-600 text-center mt-2">
+                                    Please upload payment screenshot to continue
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
