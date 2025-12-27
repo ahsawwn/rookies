@@ -216,7 +216,7 @@ export default function CartPage() {
                             )}
 
                             <Link 
-                                href="/order-type" 
+                                href="/checkout" 
                                 className="block"
                             >
                                 <Button className="w-full bg-[#FF6B9D] hover:bg-[#FF4A7A] text-white py-6 text-lg font-bold">

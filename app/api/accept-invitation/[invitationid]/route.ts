@@ -4,14 +4,14 @@ import { auth } from "@/lib/auth";
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: Promise<{ invitationId: string }> }
+    { params }: { params: Promise<{ invitationid: string }> }
 ) {
-    const { invitationId } = await params;
+    const { invitationid } = await params;
 
     try {
         const data = await auth.api.acceptInvitation({
             body: {
-                invitationId,
+                invitationId: invitationid,
             },
             headers: await headers(),
         });

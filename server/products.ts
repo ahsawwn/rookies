@@ -19,6 +19,24 @@ export interface ProductFilters {
  */
 export async function getProducts(filters?: ProductFilters) {
     try {
+        // Check if DATABASE_URL is set
+        if (!process.env.DATABASE_URL) {
+            console.warn("DATABASE_URL not set, returning empty products");
+            return {
+                success: false,
+                products: [],
+                pagination: {
+                    page: 1,
+                    limit: filters?.limit || 50,
+                    total: 0,
+                    totalPages: 0,
+                    hasNext: false,
+                    hasPrev: false,
+                },
+                error: "Database not configured",
+            };
+        }
+
         // For admin pages, include inactive products if requested
         const conditions: any[] = [];
         if (!filters?.includeInactive) {

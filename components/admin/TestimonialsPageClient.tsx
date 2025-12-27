@@ -109,26 +109,31 @@ export default function TestimonialsPageClient({
 
     const columns = [
         {
+            key: "name",
             header: "Name",
-            accessor: (row: Testimonial) => row.name,
+            render: (row: Testimonial) => row.name,
         },
         {
+            key: "role",
             header: "Role",
-            accessor: (row: Testimonial) => row.role || "—",
+            render: (row: Testimonial) => row.role || "—",
         },
         {
+            key: "comment",
             header: "Comment",
-            accessor: (row: Testimonial) => (
+            render: (row: Testimonial) => (
                 <span className="line-clamp-2 max-w-md">{row.comment}</span>
             ),
         },
         {
+            key: "rating",
             header: "Rating",
-            accessor: (row: Testimonial) => "★".repeat(row.rating || 5),
+            render: (row: Testimonial) => "★".repeat(row.rating || 5),
         },
         {
+            key: "status",
             header: "Status",
-            accessor: (row: Testimonial) => (
+            render: (row: Testimonial) => (
                 <div className="flex gap-2">
                     {row.isApproved ? (
                         <Badge className="bg-green-100 text-green-700">Approved</Badge>
@@ -142,8 +147,9 @@ export default function TestimonialsPageClient({
             ),
         },
         {
+            key: "actions",
             header: "Actions",
-            accessor: (row: Testimonial) => (
+            render: (row: Testimonial) => (
                 <div className="flex gap-2">
                     {!row.isApproved && (
                         <Button

@@ -30,10 +30,10 @@ export default function NewsletterSection() {
     };
 
     return (
-        <section className="py-20 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 relative overflow-hidden">
+        <section className="py-20 bg-gradient-to-br from-[#000096] via-[#00008B] to-[#000096] relative overflow-hidden">
             {/* Decorative elements */}
             <div className="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#DFEFFF]/20 rounded-full blur-3xl"></div>
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <motion.div
@@ -49,7 +49,7 @@ export default function NewsletterSection() {
                     <h2 className="text-4xl sm:text-5xl font-black text-white mb-4">
                         Stay in the Loop
                     </h2>
-                    <p className="text-lg text-purple-100 mb-8 max-w-2xl mx-auto">
+                    <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
                         Subscribe to our newsletter and be the first to know about new flavors, 
                         special offers, and exclusive deals.
                     </p>
@@ -68,7 +68,7 @@ export default function NewsletterSection() {
                                 <Button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="bg-white text-purple-600 hover:bg-purple-50 rounded-full px-8 py-4 text-lg font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                                    className="bg-white text-[#000096] hover:bg-[#DFEFFF] rounded-full px-8 py-4 text-lg font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                                 >
                                     {isSubmitting ? 'Subscribing...' : 'Subscribe'}
                                 </Button>
@@ -85,7 +85,7 @@ export default function NewsletterSection() {
                         </motion.div>
                     )}
 
-                    <p className="text-sm text-purple-200 mt-6">
+                    <p className="text-sm text-white/80 mt-6">
                         We respect your privacy. Unsubscribe at any time.
                     </p>
                 </motion.div>

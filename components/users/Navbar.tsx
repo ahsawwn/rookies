@@ -104,10 +104,10 @@ const Navbar = () => {
 
                         {/* Center: Logo */}
                         <Link href="/" className="flex items-center gap-2 absolute left-1/2 transform -translate-x-1/2">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                            <div className="w-10 h-10 bg-[#000096] rounded-lg flex items-center justify-center shadow-lg">
                                 <span className="text-white font-bold text-xl">R</span>
                             </div>
-                            <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent tracking-tight hidden sm:block">ROOKIES</span>
+                            <span className="text-2xl font-bold text-[#000096] tracking-tight hidden sm:block">ROOKIES</span>
                         </Link>
 
                         {/* Right: Cart & Profile */}
@@ -120,7 +120,7 @@ const Navbar = () => {
                             >
                                 <FiShoppingCart className="w-6 h-6 text-black" />
                                 {cartCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
+                                    <span className="absolute -top-1 -right-1 bg-[#FF0000] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
                                         {cartCount > 9 ? '9+' : cartCount}
                                     </span>
                                 )}
@@ -142,7 +142,7 @@ const Navbar = () => {
                                             className="rounded-full"
                                         />
                                     ) : (
-                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
+                                        <div className="w-6 h-6 rounded-full bg-[#000096] flex items-center justify-center">
                                             <span className="text-white text-xs font-bold">
                                                 {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
                                             </span>
@@ -152,7 +152,7 @@ const Navbar = () => {
                             ) : (
                                 <Link
                                     href="/login"
-                                    className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-medium hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl"
+                                    className="px-4 py-2 rounded-full bg-[#000096] text-white text-sm font-medium hover:bg-[#00008B] transition-all shadow-lg hover:shadow-xl"
                                 >
                                     Sign in
                                 </Link>
@@ -173,7 +173,7 @@ const Navbar = () => {
                     {/* Menu Header */}
                     <div className="flex items-center justify-between p-6 border-b border-gray-200">
                         <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-[#E91E63] rounded-lg flex items-center justify-center shadow-sm">
+                            <div className="w-10 h-10 bg-[#000096] rounded-lg flex items-center justify-center shadow-sm">
                                 <span className="text-white font-bold text-xl">R</span>
                             </div>
                             <span className="text-xl font-bold text-black">ROOKIES</span>
@@ -220,7 +220,7 @@ const Navbar = () => {
                                             className="rounded-full"
                                         />
                                     ) : (
-                                        <div className="w-10 h-10 rounded-full bg-[#E91E63] flex items-center justify-center">
+                                        <div className="w-10 h-10 rounded-full bg-[#000096] flex items-center justify-center">
                                             <span className="text-white font-bold">
                                                 {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
                                             </span>
@@ -267,7 +267,7 @@ const Navbar = () => {
                                     <Link
                                         href="/admin"
                                         onClick={() => setIsMenuOpen(false)}
-                                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#E91E63] hover:bg-pink-50 transition-colors"
+                                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#000096] hover:bg-[#DFEFFF] transition-colors"
                                     >
                                         <FiSettings className="w-5 h-5" />
                                         <span className="font-medium">Admin Panel</span>
@@ -287,7 +287,7 @@ const Navbar = () => {
                                 <Link
                                     href="/login"
                                     onClick={() => setIsMenuOpen(false)}
-                                    className="block w-full text-center px-4 py-3 rounded-full bg-[#E91E63] text-white font-medium hover:bg-[#C2185B] transition-colors"
+                                    className="block w-full text-center px-4 py-3 rounded-full bg-[#000096] text-white font-medium hover:bg-[#00008B] transition-colors"
                                 >
                                     Sign in
                                 </Link>

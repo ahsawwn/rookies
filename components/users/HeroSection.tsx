@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { FiArrowRight } from 'react-icons/fi';
-import { getFeaturedProducts } from '@/server/products';
 
 // Dynamically import Sprinkles with SSR disabled to prevent hydration mismatch
 const Sprinkles = dynamic(() => import('./Sprinkles'), { 
@@ -15,30 +14,8 @@ const Sprinkles = dynamic(() => import('./Sprinkles'), {
 });
 
 export default function HeroSection() {
-    const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
-    const [currentProductIndex, setCurrentProductIndex] = useState(0);
-
-    useEffect(() => {
-        // Fetch featured products
-        getFeaturedProducts(6).then((result) => {
-            if (result.success && result.products) {
-                setFeaturedProducts(result.products);
-            }
-        });
-    }, []);
-
-    // Auto-rotate product carousel
-    useEffect(() => {
-        if (featuredProducts.length > 1) {
-            const interval = setInterval(() => {
-                setCurrentProductIndex((prev) => (prev + 1) % featuredProducts.length);
-            }, 4000);
-            return () => clearInterval(interval);
-        }
-    }, [featuredProducts.length]);
-
     return (
-        <section className="relative w-full bg-gradient-to-br from-purple-50 via-indigo-50 via-purple-50 to-indigo-100 overflow-hidden min-h-[90vh] flex items-center">
+        <section className="relative w-full bg-gradient-to-br from-[#DFEFFF] via-[#CDD6DA] to-[#DFEFFF] overflow-hidden min-h-[90vh] flex items-center">
             {/* Animated Background Elements */}
             <div className="absolute inset-0 overflow-hidden">
                 {/* Floating Biscuits/Cookies */}
@@ -71,28 +48,20 @@ export default function HeroSection() {
                     {/* Left: Content */}
                     <div className="text-center lg:text-left relative z-10">
                         {/* Badge */}
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-purple-200 mb-6 animate-fade-in">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-[#CDD6DA] mb-6 animate-fade-in">
                             <span className="text-2xl animate-bounce">🍪</span>
-                            <span className="text-sm font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Fresh Baked Daily</span>
+                            <span className="text-sm font-bold text-[#000096]">Fresh Baked Daily</span>
                         </div>
 
                         {/* Headline */}
                         <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black mb-6 leading-tight animate-slide-up">
-                            <span className="block bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                Freshly Baked
+                            <span className="block text-[#000096]">
+                                Artisan Happiness,
                             </span>
-                            <span className="block text-[#1a1a1a] mt-2">Happiness</span>
+                            <span className="block text-[#000096] mt-2">
+                                Baked Fresh in Islamabad
+                            </span>
                         </h1>
-
-                        {/* Weekly Rotating Flavors */}
-                        <div className="mb-6 animate-slide-up-delay">
-                            <p className="text-sm font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent uppercase tracking-wider mb-2">
-                                This Week's Special
-                            </p>
-                            <p className="text-xl sm:text-2xl font-bold text-gray-800">
-                                Chocolate Chip • Red Velvet • Oatmeal Raisin
-                            </p>
-                        </div>
 
                         {/* Description */}
                         <p className="text-lg sm:text-xl text-gray-700 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium animate-slide-up-delay-2">
@@ -102,124 +71,62 @@ export default function HeroSection() {
 
                         {/* CTA Buttons */}
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-slide-up-delay-3">
-                            <Link href="/order-type" className="w-full sm:w-auto">
+                            <Link href="/order-inquiry" className="w-full sm:w-auto">
                                 <Button 
                                     size="lg" 
-                                    className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-8 sm:px-10 py-6 sm:py-7 text-lg sm:text-xl font-bold rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all transform hover:scale-105"
+                                    className="w-full sm:w-auto bg-[#FF0000] hover:bg-[#CC0000] text-white px-8 sm:px-10 py-6 sm:py-7 text-lg sm:text-xl font-bold rounded-full shadow-2xl hover:shadow-red-500/50 transition-all transform hover:scale-105"
                                 >
-                                    Order Now
+                                    Order This Week's Menu
                                     <FiArrowRight className="ml-2 w-5 h-5 sm:w-6 sm:h-6" />
                                 </Button>
                             </Link>
-                            <Link href="/shop" className="w-full sm:w-auto">
+                            <a href="#about" className="w-full sm:w-auto">
                                 <Button 
                                     variant="outline" 
                                     size="lg"
-                                    className="w-full sm:w-auto border-2 border-purple-600 bg-white/80 backdrop-blur-sm text-purple-600 hover:bg-purple-600 hover:text-white px-8 sm:px-10 py-6 sm:py-7 text-lg sm:text-xl font-bold rounded-full transition-all shadow-lg"
+                                    className="w-full sm:w-auto border-2 border-[#000096] bg-white/80 backdrop-blur-sm text-[#000096] hover:bg-[#000096] hover:text-white px-8 sm:px-10 py-6 sm:py-7 text-lg sm:text-xl font-bold rounded-full transition-all shadow-lg"
                                 >
-                                    View Menu
+                                    See Our Story
                                 </Button>
-                            </Link>
+                            </a>
                         </div>
 
                         {/* Stats */}
                         <div className="mt-8 sm:mt-12 flex flex-wrap gap-6 sm:gap-8 justify-center lg:justify-start animate-fade-in-delay">
-                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-purple-100">
-                                <div className="text-4xl font-black bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">100+</div>
+                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-[#CDD6DA]">
+                                <div className="text-4xl font-black text-[#000096]">100+</div>
                                 <div className="text-sm font-semibold text-gray-700">Happy Customers</div>
                             </div>
-                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-purple-100">
-                                <div className="text-4xl font-black bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">50+</div>
+                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-[#CDD6DA]">
+                                <div className="text-4xl font-black text-[#FF0000]">50+</div>
                                 <div className="text-sm font-semibold text-gray-700">Products</div>
                             </div>
-                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-purple-100">
-                                <div className="text-4xl font-black bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">Fresh</div>
+                            <div className="bg-white/60 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-[#CDD6DA]">
+                                <div className="text-4xl font-black text-[#000096]">Fresh</div>
                                 <div className="text-sm font-semibold text-gray-700">Daily Baking</div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Right: Product Carousel */}
+                    {/* Right: Hero Image/Video Placeholder */}
                     <div className="relative hidden lg:block">
-                        <div className="relative w-full aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-purple-100 to-indigo-200 border-2 border-purple-200">
-                            {featuredProducts.length > 0 ? (
-                                <>
-                                    {featuredProducts.map((product, index) => (
-                                        <div
-                                            key={product.id}
-                                            className={`absolute inset-0 transition-opacity duration-1000 ${
-                                                index === currentProductIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                                            }`}
-                                        >
-                                            <Image
-                                                src={product.image}
-                                                alt={product.name}
-                                                fill
-                                                className="object-cover"
-                                                priority={index === 0}
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                                            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                                                <h3 className="text-2xl font-bold mb-1">{product.name}</h3>
-                                                <p className="text-lg font-semibold">Rs. {parseFloat(product.price).toFixed(2)}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {/* Carousel Indicators */}
-                                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
-                                        {featuredProducts.map((_, index) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => setCurrentProductIndex(index)}
-                                                className={`w-3 h-3 rounded-full transition-all ${
-                                                    index === currentProductIndex
-                                                        ? 'bg-white w-8'
-                                                        : 'bg-white/50 hover:bg-white/75'
-                                                }`}
-                                            />
-                                        ))}
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="text-6xl animate-spin-slow">🍪</div>
-                                </div>
-                            )}
+                        <div className="relative w-full aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-[#DFEFFF] to-[#CDD6DA] border-2 border-[#CDD6DA]">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="text-9xl opacity-30">🍰</div>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
+                            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                                <p className="text-sm font-semibold opacity-90">Video or high-quality image slider can be added here</p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Mobile: Product Carousel */}
+                    {/* Mobile: Hero Image Placeholder */}
                     <div className="lg:hidden flex justify-center mt-8">
-                        <div className="relative w-full max-w-sm aspect-square rounded-2xl overflow-hidden shadow-xl bg-gradient-to-br from-purple-100 to-indigo-200 border-2 border-purple-200">
-                            {featuredProducts.length > 0 ? (
-                                <>
-                                    {featuredProducts.map((product, index) => (
-                                        <div
-                                            key={product.id}
-                                            className={`absolute inset-0 transition-opacity duration-1000 ${
-                                                index === currentProductIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                                            }`}
-                                        >
-                                            <Image
-                                                src={product.image}
-                                                alt={product.name}
-                                                fill
-                                                className="object-cover"
-                                                priority={index === 0}
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                                            <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                                                <h3 className="text-xl font-bold mb-1">{product.name}</h3>
-                                                <p className="text-base font-semibold">Rs. {parseFloat(product.price).toFixed(2)}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </>
-                            ) : (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="text-5xl animate-spin-slow">🍪</div>
-                                </div>
-                            )}
+                        <div className="relative w-full max-w-sm aspect-square rounded-2xl overflow-hidden shadow-xl bg-gradient-to-br from-[#DFEFFF] to-[#CDD6DA] border-2 border-[#CDD6DA]">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="text-7xl opacity-30">🍰</div>
+                            </div>
                         </div>
                     </div>
                 </div>

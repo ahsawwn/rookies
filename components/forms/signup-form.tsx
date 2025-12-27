@@ -121,10 +121,13 @@ export function SignupForm({
                 const sessionData = await authClient.getSession();
                 if (sessionData.data?.session) {
                     const { storeSession } = await import("@/lib/session-storage");
-                    storeSession({
-                        user: sessionData.data.session.user,
-                        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                    });
+                    if (sessionData.data?.session && 'user' in sessionData.data.session) {
+                        const session = sessionData.data.session as any;
+                        storeSession({
+                            user: session.user,
+                            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        });
+                    }
                     // Dispatch custom event to notify components immediately
                     if (typeof window !== "undefined") {
                         window.dispatchEvent(new CustomEvent('sessionUpdated'));

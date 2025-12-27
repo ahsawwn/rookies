@@ -105,7 +105,7 @@ export function LoginForm({
       console.log("Result keys:", result ? Object.keys(result) : []);
       
       // Check multiple possible response formats
-      const oauthUrl = result?.data?.url || result?.url || result?.redirectUrl || result?.data?.redirectUrl;
+      const oauthUrl = (result as any)?.data?.url || (result as any)?.url || (result as any)?.redirectUrl || (result as any)?.data?.redirectUrl;
       
       if (oauthUrl && typeof oauthUrl === 'string') {
         console.log("Found OAuth URL, redirecting:", oauthUrl);
@@ -158,10 +158,11 @@ export function LoginForm({
       
       // Store session in localStorage
       const sessionData = await authClient.getSession();
-      if (sessionData.data?.session) {
+      if (sessionData.data?.session && 'user' in sessionData.data.session) {
         const { storeSession } = await import("@/lib/session-storage");
+        const session = sessionData.data.session as any;
         storeSession({
-          user: sessionData.data.session.user,
+          user: session.user,
           expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         });
         // Dispatch custom event to notify components immediately
@@ -208,26 +209,6 @@ export function LoginForm({
       }
 
       localStorage.setItem("lastLoginMethod", "email");
-      
-      // Link guest orders to user account
-      try {
-        const { linkGuestOrdersToUser } = await import("@/server/orders");
-        const guestEmail = values.email;
-        const guestSessionId = typeof window !== "undefined" ? localStorage.getItem("guestSessionId") : undefined;
-        
-        // Get user ID from session
-        const sessionData = await authClient.getSession();
-        if (sessionData.data?.session?.user?.id) {
-          await linkGuestOrdersToUser(
-            sessionData.data.session.user.id,
-            guestEmail,
-            guestSessionId || undefined
-          );
-        }
-      } catch (error) {
-        console.error("Error linking guest orders:", error);
-        // Don't block login if linking fails
-      }
       
       toast.success("Signed in successfully");
       

@@ -21,10 +21,18 @@ const Testimonials = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const timeout = setTimeout(() => {
+            setLoading(false);
+        }, 5000); // 5 second timeout
+
         getTestimonials(true).then((result) => {
+            clearTimeout(timeout);
             if (result.success && result.testimonials) {
                 setTestimonials(result.testimonials as Testimonial[]);
             }
+            setLoading(false);
+        }).catch(() => {
+            clearTimeout(timeout);
             setLoading(false);
         });
     }, []);
@@ -90,7 +98,7 @@ const Testimonials = () => {
     }
 
     return (
-        <section className="w-full py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-white via-purple-50/30 to-white">
+        <section className="w-full py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-white via-[#DFEFFF]/30 to-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -99,14 +107,14 @@ const Testimonials = () => {
                     transition={{ duration: 0.6 }}
                     className="text-center mb-10 sm:mb-14"
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-full mb-4">
-                        <span className="text-sm font-semibold text-purple-700 uppercase tracking-wider">
-                            Testimonials
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#DFEFFF] rounded-full mb-4">
+                        <span className="text-sm font-semibold text-[#000096] uppercase tracking-wider">
+                            Sweet Words
                         </span>
                     </div>
                     <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                         Love from
-                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600">
+                        <span className="block text-[#000096]">
                             Islamabad
                         </span>
                     </h2>
@@ -123,12 +131,12 @@ const Testimonials = () => {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.3 }}
-                        className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 shadow-xl max-w-4xl mx-auto border-2 border-purple-100"
+                        className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 shadow-xl max-w-4xl mx-auto border-2 border-[#CDD6DA]"
                     >
                         <div className="flex flex-col lg:flex-row items-center gap-8">
                             {/* Avatar & Info */}
                             <div className="flex-shrink-0">
-                                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg">
+                                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-[#000096] rounded-full flex items-center justify-center shadow-lg">
                                     <span className="text-white text-2xl sm:text-3xl font-bold">
                                         {displayTestimonials[currentIndex].avatar || displayTestimonials[currentIndex].name.charAt(0)}
                                     </span>
@@ -152,7 +160,7 @@ const Testimonials = () => {
 
                             {/* Testimonial Text */}
                             <div className="flex-1 text-center lg:text-left">
-                                <div className="text-6xl text-purple-200 mb-4">"</div>
+                                <div className="text-6xl text-[#DFEFFF] mb-4">"</div>
                                 <p className="text-lg sm:text-xl lg:text-2xl text-gray-700 italic mb-6">
                                     {displayTestimonials[currentIndex].comment}
                                 </p>
@@ -170,7 +178,7 @@ const Testimonials = () => {
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={prevTestimonial}
-                            className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 border-2 border-purple-100"
+                            className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 border-2 border-[#CDD6DA]"
                         >
                             <FiChevronLeft className="w-6 h-6 text-gray-700" />
                         </motion.button>
@@ -181,7 +189,7 @@ const Testimonials = () => {
                                     key={index}
                                     onClick={() => setCurrentIndex(index)}
                                     className={`h-3 rounded-full transition-all duration-300 ${
-                                        index === currentIndex ? 'bg-purple-600 w-8' : 'bg-gray-300 w-3'
+                                        index === currentIndex ? 'bg-[#000096] w-8' : 'bg-gray-300 w-3'
                                     }`}
                                 />
                             ))}
@@ -191,7 +199,7 @@ const Testimonials = () => {
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={nextTestimonial}
-                            className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 border-2 border-purple-100"
+                            className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 border-2 border-[#CDD6DA]"
                         >
                             <FiChevronRight className="w-6 h-6 text-gray-700" />
                         </motion.button>
@@ -206,20 +214,20 @@ const Testimonials = () => {
                     transition={{ duration: 0.6, delay: 0.2 }}
                     className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 sm:mt-16"
                 >
-                    <div className="text-center p-6 bg-white rounded-2xl shadow-sm border-2 border-purple-100">
-                        <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">4.9★</div>
+                    <div className="text-center p-6 bg-white rounded-2xl shadow-sm border-2 border-[#CDD6DA]">
+                        <div className="text-3xl sm:text-4xl font-bold text-[#000096] mb-2">4.9★</div>
                         <div className="text-gray-600">Average Rating</div>
                     </div>
-                    <div className="text-center p-6 bg-white rounded-2xl shadow-sm border-2 border-purple-100">
-                        <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent mb-2">50M+</div>
+                    <div className="text-center p-6 bg-white rounded-2xl shadow-sm border-2 border-[#CDD6DA]">
+                        <div className="text-3xl sm:text-4xl font-bold text-[#FF0000] mb-2">50M+</div>
                         <div className="text-gray-600">Cookies Sold</div>
                     </div>
-                    <div className="text-center p-6 bg-white rounded-2xl shadow-sm border-2 border-purple-100">
-                        <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent mb-2">200+</div>
+                    <div className="text-center p-6 bg-white rounded-2xl shadow-sm border-2 border-[#CDD6DA]">
+                        <div className="text-3xl sm:text-4xl font-bold text-[#000096] mb-2">200+</div>
                         <div className="text-gray-600">Locations</div>
                     </div>
-                    <div className="text-center p-6 bg-white rounded-2xl shadow-sm border-2 border-purple-100">
-                        <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">150+</div>
+                    <div className="text-center p-6 bg-white rounded-2xl shadow-sm border-2 border-[#CDD6DA]">
+                        <div className="text-3xl sm:text-4xl font-bold text-[#000096] mb-2">150+</div>
                         <div className="text-gray-600">Flavors</div>
                     </div>
                 </motion.div>

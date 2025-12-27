@@ -32,6 +32,14 @@ const adminLoginSchema = z.object({
  */
 export async function adminLogin(email: string, password: string) {
     try {
+        // Check if DATABASE_URL is set
+        if (!process.env.DATABASE_URL) {
+            return {
+                success: false,
+                error: "Database not configured. Please set DATABASE_URL in your .env.local file.",
+            };
+        }
+
         // Validate input
         const validated = adminLoginSchema.parse({ email, password });
         
@@ -116,6 +124,15 @@ export async function adminLogin(email: string, password: string) {
  */
 export async function getCurrentAdmin() {
     try {
+        // Check if DATABASE_URL is set
+        if (!process.env.DATABASE_URL) {
+            console.warn("DATABASE_URL not set, admin session check skipped");
+            return {
+                success: false,
+                admin: null,
+            };
+        }
+
         const cookieStore = await cookies();
         const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
 
@@ -168,6 +185,7 @@ export async function getCurrentAdmin() {
         };
     } catch (error) {
         console.error("Get current admin error:", error);
+        // Return false instead of throwing - allows page to render
         return {
             success: false,
             admin: null,

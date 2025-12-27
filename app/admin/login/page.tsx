@@ -4,9 +4,20 @@ import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 import Link from "next/link";
 
 export default async function AdminLoginPage() {
-    const { success } = await getCurrentAdmin();
+    let isDatabaseConfigured = true;
+    let currentAdmin = null;
+    
+    try {
+        const result = await getCurrentAdmin();
+        currentAdmin = result.admin;
+        // Check if database is configured by checking if we got a proper error or just no session
+        isDatabaseConfigured = process.env.DATABASE_URL ? true : false;
+    } catch (error) {
+        // If error is about DATABASE_URL, database is not configured
+        isDatabaseConfigured = false;
+    }
 
-    if (success) {
+    if (currentAdmin) {
         redirect("/admin");
     }
 
@@ -23,6 +34,13 @@ export default async function AdminLoginPage() {
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Portal</h1>
                     <p className="text-gray-600">Access the admin dashboard</p>
                 </div>
+
+                {!isDatabaseConfigured && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+                        <p className="font-semibold mb-1">Database Not Configured</p>
+                        <p>Please set DATABASE_URL in your .env.local file to enable admin login.</p>
+                    </div>
+                )}
 
                 <AdminLoginForm />
 
