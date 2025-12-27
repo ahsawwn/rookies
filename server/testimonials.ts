@@ -7,6 +7,16 @@ import { eq, and, desc } from "drizzle-orm";
  */
 export async function getTestimonials(featuredOnly: boolean = false) {
     try {
+        // Check if DATABASE_URL is set
+        if (!process.env.DATABASE_URL) {
+            console.warn("DATABASE_URL not set, returning empty testimonials");
+            return {
+                success: false,
+                testimonials: [],
+                error: "Database not configured",
+            };
+        }
+
         let query = db
             .select()
             .from(testimonial)
@@ -31,6 +41,7 @@ export async function getTestimonials(featuredOnly: boolean = false) {
     } catch (error) {
         console.error("Get testimonials error:", error);
         const e = error as Error;
+        // Return empty array instead of failing - component has fallback testimonials
         return {
             success: false,
             testimonials: [],

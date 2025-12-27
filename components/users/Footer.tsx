@@ -9,7 +9,7 @@ export default function Footer() {
                     {/* Company Info */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-[#FF6B9D] rounded-lg flex items-center justify-center">
+                            <div className="w-10 h-10 bg-[#000096] rounded-lg flex items-center justify-center">
                                 <span className="text-white font-bold text-xl">R</span>
                             </div>
                             <span className="text-2xl font-bold text-black">ROOKIES</span>
@@ -22,7 +22,7 @@ export default function Footer() {
                                 href="https://facebook.com"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 bg-gray-100 hover:bg-[#FF6B9D] rounded-full flex items-center justify-center transition-colors"
+                                className="w-10 h-10 bg-gray-100 hover:bg-[#000096] rounded-full flex items-center justify-center transition-colors"
                             >
                                 <FiFacebook className="w-5 h-5 text-gray-700 hover:text-white" />
                             </a>
@@ -30,7 +30,7 @@ export default function Footer() {
                                 href="https://twitter.com"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 bg-gray-100 hover:bg-[#FF6B9D] rounded-full flex items-center justify-center transition-colors"
+                                className="w-10 h-10 bg-gray-100 hover:bg-[#000096] rounded-full flex items-center justify-center transition-colors"
                             >
                                 <FiTwitter className="w-5 h-5 text-gray-700 hover:text-white" />
                             </a>
@@ -38,7 +38,7 @@ export default function Footer() {
                                 href="https://instagram.com"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 bg-gray-100 hover:bg-[#FF6B9D] rounded-full flex items-center justify-center transition-colors"
+                                className="w-10 h-10 bg-gray-100 hover:bg-[#000096] rounded-full flex items-center justify-center transition-colors"
                             >
                                 <FiInstagram className="w-5 h-5 text-gray-700 hover:text-white" />
                             </a>
@@ -111,8 +111,9 @@ export default function Footer() {
                             <li className="flex items-start gap-3">
                                 <FiMapPin className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
                                 <span className="text-gray-600 text-sm">
-                                    Pakistan<br />
-                                    Home-based Bakery
+                                    Islamabad, Pakistan<br />
+                                    Home-based Bakery<br />
+                                    <span className="text-[#000096] font-semibold">Pickup Available</span>
                                 </span>
                             </li>
                             <li className="flex items-center gap-3">

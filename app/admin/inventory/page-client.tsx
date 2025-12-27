@@ -34,7 +34,7 @@ export function InventoryPageClient({ initialProducts }: InventoryPageClientProp
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
     const categories = useMemo(() => {
-        const cats = new Set(products.map(p => p.category).filter(Boolean));
+        const cats = new Set(products.map(p => p.category).filter((cat): cat is string => Boolean(cat)));
         return Array.from(cats).sort();
     }, [products]);
 

@@ -11,10 +11,24 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default async function AdminDashboard() {
-    const ordersResult = await getAllOrders(1, 50);
-    const orders = ordersResult.success ? ordersResult.orders : [];
-    const productsResult = await getProducts({ limit: 50 });
-    const products = productsResult.success ? productsResult.products : [];
+    let orders: any[] = [];
+    let products: any[] = [];
+    
+    try {
+        const ordersResult = await getAllOrders(1, 50);
+        orders = ordersResult.success ? ordersResult.orders : [];
+    } catch (error) {
+        console.warn("Failed to load orders:", error);
+        orders = [];
+    }
+    
+    try {
+        const productsResult = await getProducts({ limit: 50 });
+        products = productsResult.success ? productsResult.products : [];
+    } catch (error) {
+        console.warn("Failed to load products:", error);
+        products = [];
+    }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -79,8 +93,22 @@ export default async function AdminDashboard() {
         totalCustomersChange: 0, // TODO: Calculate from previous period
     };
 
+    const isDatabaseConfigured = !!process.env.DATABASE_URL;
+
     return (
         <div className="space-y-6">
+            {/* Database Configuration Warning */}
+            {!isDatabaseConfigured && (
+                <Alert className="border-amber-200 bg-amber-50">
+                    <FiAlertTriangle className="w-4 h-4 text-amber-600" />
+                    <AlertTitle>Database Not Configured</AlertTitle>
+                    <AlertDescription>
+                        Please set DATABASE_URL in your .env.local file to enable full functionality.
+                        The dashboard is showing empty data until the database is configured.
+                    </AlertDescription>
+                </Alert>
+            )}
+
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>

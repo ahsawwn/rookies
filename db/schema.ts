@@ -172,6 +172,9 @@ export const order = pgTable("order", {
         .references(() => user.id, { onDelete: "cascade" }), // Nullable for guest orders
     orderNumber: text("order_number").notNull().unique(),
     totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
+    promoCodeId: text("promo_code_id")
+        .references(() => promoCode.id, { onDelete: "set null" }),
+    discountAmount: numeric("discount_amount", { precision: 10, scale: 2 }).default("0").notNull(),
     status: orderStatus("status").default("pending").notNull(),
     paymentMethod: text("payment_method"),
     paymentStatus: text("payment_status").default("pending"),
@@ -216,6 +219,10 @@ export const orderRelations = relations(order, ({ one, many }) => ({
         references: [user.id],
     }),
     items: many(orderItem),
+    promoCode: one(promoCode, {
+        fields: [order.promoCodeId],
+        references: [promoCode.id],
+    }),
 }));
 
 export const orderItemRelations = relations(orderItem, ({ one }) => ({
@@ -639,6 +646,73 @@ export const paymentScreenshotRelations = relations(paymentScreenshot, ({ one })
 
 export type PaymentScreenshot = typeof paymentScreenshot.$inferSelect;
 
+// Promo Code Table
+export const promoCodeType = pgEnum("promo_code_type", ["percentage", "fixed", "free_shipping", "free_item"]);
+
+export type PromoCodeType = (typeof promoCodeType.enumValues)[number];
+
+export const promoCode = pgTable("promo_code", {
+    id: text("id").primaryKey(),
+    code: text("code").unique().notNull(),
+    type: promoCodeType("type").notNull(),
+    value: numeric("value", { precision: 10, scale: 2 }).notNull(), // Discount amount or percentage
+    expiresAt: timestamp("expires_at"),
+    usageLimit: integer("usage_limit"), // Null means unlimited
+    usedCount: integer("used_count").default(0).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    minOrderAmount: numeric("min_order_amount", { precision: 10, scale: 2 }), // Optional minimum order amount
+    freeItemProductId: text("free_item_product_id")
+        .references(() => product.id, { onDelete: "set null" }), // For free_item type
+    createdAt: timestamp("created_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+    updatedAt: timestamp("updated_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+});
+
+export const promoCodeUsage = pgTable("promo_code_usage", {
+    id: text("id").primaryKey(),
+    promoCodeId: text("promo_code_id")
+        .notNull()
+        .references(() => promoCode.id, { onDelete: "cascade" }),
+    orderId: text("order_id")
+        .notNull()
+        .references(() => order.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+        .references(() => user.id, { onDelete: "set null" }), // Null for guest orders
+    discountAmount: numeric("discount_amount", { precision: 10, scale: 2 }).notNull(),
+    createdAt: timestamp("created_at")
+        .$defaultFn(() => /* @__PURE__ */ new Date())
+        .notNull(),
+});
+
+export const promoCodeRelations = relations(promoCode, ({ one, many }) => ({
+    freeItemProduct: one(product, {
+        fields: [promoCode.freeItemProductId],
+        references: [product.id],
+    }),
+    usages: many(promoCodeUsage),
+}));
+
+export const promoCodeUsageRelations = relations(promoCodeUsage, ({ one }) => ({
+    promoCode: one(promoCode, {
+        fields: [promoCodeUsage.promoCodeId],
+        references: [promoCode.id],
+    }),
+    order: one(order, {
+        fields: [promoCodeUsage.orderId],
+        references: [order.id],
+    }),
+    user: one(user, {
+        fields: [promoCodeUsage.userId],
+        references: [user.id],
+    }),
+}));
+
+export type PromoCode = typeof promoCode.$inferSelect;
+export type PromoCodeUsage = typeof promoCodeUsage.$inferSelect;
+
 // Theme Settings Table
 export const themeSettings = pgTable("theme_settings", {
     id: text("id").primaryKey(),
@@ -704,5 +778,9 @@ export const schema = {
     paymentMethod,
     paymentScreenshot,
     paymentScreenshotRelations,
+    promoCode,
+    promoCodeUsage,
+    promoCodeRelations,
+    promoCodeUsageRelations,
     themeSettings,
 };

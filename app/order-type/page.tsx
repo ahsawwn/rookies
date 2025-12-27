@@ -20,13 +20,8 @@ export default function OrderTypePage() {
             localStorage.setItem("selectedDeliveryType", selectedType);
         }
         
-        // Redirect to shop to add items, or cart if items exist
-        const cartItems = typeof window !== "undefined" ? localStorage.getItem("cart") : null;
-        if (cartItems && JSON.parse(cartItems).length > 0) {
-            router.push(`/checkout?type=${selectedType}`);
-        } else {
-            router.push(`/shop?type=${selectedType}`);
-        }
+        // Redirect to checkout (checkout page will handle empty cart)
+        router.push(`/checkout?type=${selectedType}`);
     };
 
     return (

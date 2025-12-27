@@ -15,7 +15,7 @@ export default async function OrdersPage({
 
     const ordersResult = await getAllOrders(page, 20);
     const orders = ordersResult.success ? ordersResult.orders : [];
-    const totalPages = ordersResult.success ? ordersResult.totalPages : 1;
+    const totalPages = ordersResult.success ? ordersResult.pagination.totalPages : 1;
 
     // Filter orders by status
     let filteredOrders = orders;

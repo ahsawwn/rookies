@@ -1,0 +1,85 @@
+import type { MetadataRoute } from 'next'
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    id: '/',
+    name: 'ROOKIES Home based Bakery',
+    short_name: 'ROOKIES',
+    description: 'Fresh baked goods from Pakistan. Order cookies, shakes, cupcakes, cakes, croissants, and breads online.',
+    start_url: '/',
+    scope: '/',
+    display: 'standalone',
+    background_color: '#ffffff',
+    theme_color: '#ec4899',
+    orientation: 'portrait-primary',
+    dir: 'ltr',
+    lang: 'en',
+    icons: [
+      {
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+    ],
+    screenshots: [
+      {
+        src: '/screenshot-mobile.png',
+        sizes: '540x720',
+        type: 'image/png',
+        form_factor: 'narrow',
+        label: 'ROOKIES Bakery Mobile App',
+      },
+      {
+        src: '/screenshot-desktop.png',
+        sizes: '1280x720',
+        type: 'image/png',
+        form_factor: 'wide',
+        label: 'ROOKIES Bakery Desktop App',
+      },
+    ],
+    shortcuts: [
+      {
+        name: 'Shop',
+        short_name: 'Shop',
+        description: 'Browse our products',
+        url: '/shop',
+        icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+      },
+      {
+        name: 'Cart',
+        short_name: 'Cart',
+        description: 'View your cart',
+        url: '/cart',
+        icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+      },
+      {
+        name: 'Menu',
+        short_name: 'Menu',
+        description: 'View our menu',
+        url: '/menu',
+        icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+      },
+    ],
+    prefer_related_applications: false,
+  }
+}
+

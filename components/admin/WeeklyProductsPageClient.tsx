@@ -62,20 +62,24 @@ export default function WeeklyProductsPageClient({
 
     const columns = [
         {
+            key: "product",
             header: "Product",
-            accessor: (row: WeeklyProduct) => row.product?.name || "Unknown Product",
+            render: (row: WeeklyProduct) => row.product?.name || "Unknown Product",
         },
         {
+            key: "startDate",
             header: "Start Date",
-            accessor: (row: WeeklyProduct) => format(new Date(row.startDate), "MMM d, yyyy"),
+            render: (row: WeeklyProduct) => format(new Date(row.startDate), "MMM d, yyyy"),
         },
         {
+            key: "endDate",
             header: "End Date",
-            accessor: (row: WeeklyProduct) => format(new Date(row.endDate), "MMM d, yyyy"),
+            render: (row: WeeklyProduct) => format(new Date(row.endDate), "MMM d, yyyy"),
         },
         {
+            key: "status",
             header: "Status",
-            accessor: (row: WeeklyProduct) => {
+            render: (row: WeeklyProduct) => {
                 const now = new Date();
                 const start = new Date(row.startDate);
                 const end = new Date(row.endDate);
@@ -85,8 +89,9 @@ export default function WeeklyProductsPageClient({
             },
         },
         {
+            key: "actions",
             header: "Actions",
-            accessor: (row: WeeklyProduct) => (
+            render: (row: WeeklyProduct) => (
                 <div className="flex gap-2">
                     <Button
                         variant="outline"

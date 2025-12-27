@@ -1,6 +1,6 @@
 import { searchProducts, getProducts } from "@/server/products";
 import { ProductCard } from "@/components/shop/ProductCard";
-import { ShopFilters } from "@/components/shop/ShopFilters";
+import { SearchFiltersWrapper } from "./SearchFiltersWrapper";
 import Navbar from "@/components/users/Navbar";
 import Footer from "@/components/users/Footer";
 
@@ -92,7 +92,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Filters Sidebar */}
                     <aside className="lg:w-64 flex-shrink-0">
-                        <ShopFilters
+                        <SearchFiltersWrapper
                             initialCategory={category}
                             initialSortBy={sortBy}
                             initialSearch={query}

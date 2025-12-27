@@ -292,6 +292,24 @@ export async function getOrderByNumber(orderNumber: string) {
  */
 export async function getAllOrders(page: number = 1, limit: number = 20) {
     try {
+        // Check if DATABASE_URL is set
+        if (!process.env.DATABASE_URL) {
+            console.warn("DATABASE_URL not set, returning empty orders");
+            return {
+                success: false,
+                orders: [],
+                pagination: {
+                    page: 1,
+                    limit: 20,
+                    total: 0,
+                    totalPages: 0,
+                    hasNext: false,
+                    hasPrev: false,
+                },
+                error: "Database not configured",
+            };
+        }
+
         // Validate pagination params
         const pageNum = Math.max(1, Math.floor(page));
         const limitNum = Math.max(1, Math.min(100, Math.floor(limit))); // Max 100 items per page

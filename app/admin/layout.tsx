@@ -17,7 +17,20 @@ export default async function AdminLayout({
         return <>{children}</>;
     }
 
-    const { success, admin } = await getCurrentAdmin();
+    // Try to get current admin, but don't crash if database is not configured
+    let success = false;
+    let admin = null;
+    
+    try {
+        const result = await getCurrentAdmin();
+        success = result.success;
+        admin = result.admin;
+    } catch (error) {
+        // If database is not configured, allow access to login page
+        console.warn("Admin check failed (database may not be configured):", error);
+        success = false;
+        admin = null;
+    }
 
     if (!success || !admin) {
         redirect("/admin/login");

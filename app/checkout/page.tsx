@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/contexts/CartContext";
@@ -24,7 +24,7 @@ export default function CheckoutPage() {
     const [step, setStep] = useState<"delivery" | "payment" | "review">("delivery");
 
     // Get delivery type from URL params or localStorage
-    const getDeliveryType = (): "delivery" | "pickup" => {
+    const getDeliveryType = useCallback((): "delivery" | "pickup" => {
         const urlType = searchParams.get("type") as "delivery" | "pickup" | null;
         if (urlType === "delivery" || urlType === "pickup") {
             return urlType;
@@ -36,7 +36,7 @@ export default function CheckoutPage() {
             }
         }
         return "delivery"; // Default
-    };
+    }, [searchParams]);
 
     // Delivery form state
     const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">(getDeliveryType());
@@ -83,7 +83,7 @@ export default function CheckoutPage() {
             return;
         }
         setDeliveryType(type);
-    }, [items, sessionLoading, router, searchParams]);
+    }, [items, sessionLoading, router, searchParams, getDeliveryType]);
 
     const subtotal = getTotal();
     const shipping = subtotal > 2000 ? 0 : 200; // Free shipping on orders Rs. 2000+
@@ -146,7 +146,7 @@ export default function CheckoutPage() {
                     ...deliveryAddress,
                     phone: guestInfo.phone,
                 } : null,
-                pickupBranchId: deliveryType === "pickup" ? "branch-1" : null,
+                pickupBranchId: deliveryType === "pickup" ? "branch-1" : undefined,
                 pickupName: deliveryType === "pickup" ? (pickupInfo.name || guestInfo.name) : undefined,
                 pickupPhone: deliveryType === "pickup" ? (pickupInfo.phone || guestInfo.phone) : undefined,
                 // Guest order fields

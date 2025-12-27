@@ -18,14 +18,30 @@
         overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        font-family: var(--font-nunito), 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: var(--font-poppins), 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
     h1, h2, h3, h4, h5, h6 {
-        font-family: var(--font-nunito), 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: var(--font-poppins), 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         font-weight: 700;
         letter-spacing: -0.02em;
         color: var(--text-dark);
+    }
+
+    /* PWA Install Prompt Animations */
+    @keyframes slide-in-from-bottom {
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .animate-in {
+        animation: slide-in-from-bottom 0.3s ease-out;
     }
     
     /* Typography Scale */
@@ -391,42 +407,47 @@
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
+    --primary: #000096;
+    --primary-foreground: #FFFFFF;
     --secondary: oklch(0.97 0 0);
     --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0);
     --muted-foreground: oklch(0.556 0 0);
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
+    --destructive: #FF0000;
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.708 0 0);
     
-    /* Premium Luxury Color Palette */
-    --primary-purple: #6366f1;
-    --primary-purple-dark: #4f46e5;
-    --primary-purple-light: #818cf8;
+    /* ROOKIES Premium Color Palette */
+    --primary-navy: #000096;
+    --primary-navy-dark: #00008B;
+    --light-blue-1: #DFEFFF;
+    --light-blue-2: #CDD6DA;
+    --accent-red: #FF0000;
+    --text-dark: #1a1a1a;
+    --text-light: #6b7280;
+    
+    /* Legacy Colors (for backward compatibility) */
+    --primary-purple: #000096;
+    --primary-purple-dark: #00008B;
+    --primary-purple-light: #DFEFFF;
     --accent-gold: #d4af37;
     --accent-gold-light: #f4d03f;
     --accent-gold-dark: #b8941e;
-    --deep-purple: #5b21b6;
+    --deep-purple: #00008B;
     --elegant-gray: #1f2937;
     --elegant-gray-light: #374151;
     --cream: #faf9f6;
     --warm-beige: #f5f3f0;
-    --text-dark: #1a1a1a;
-    --text-light: #6b7280;
-    
-    /* Legacy Crumbl Colors (for backward compatibility) */
-    --crumbl-pink: #E91E63;
-    --crumbl-pink-dark: #C2185B;
+    --crumbl-pink: #FF0000;
+    --crumbl-pink-dark: #CC0000;
     --crumbl-black: #1a1a1a;
     --crumbl-white: #FFFFFF;
     --crumbl-gray: #6B7280;
-    --primary-pink: #E91E63;
-    --primary-dark: #1a1a1a;
+    --primary-pink: #FF0000;
+    --primary-dark: #000096;
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
