@@ -7,7 +7,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38bdf8?style=for-the-badge&logo=tailwind-css)
 
-**A modern, beautiful bakery web application inspired by Crumbl Cookies, built with Next.js and cutting-edge technologies.**
+**A modern, beautiful bakery web application built with Next.js and cutting-edge technologies.**
 
 [Features](#-features) • [Tech Stack](#-tech-stack) • [Getting Started](#-getting-started) • [Screenshots](#-screenshots)
 
